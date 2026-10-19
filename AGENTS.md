@@ -1,0 +1,1 @@
+- Match pipeline: synthetic events + stats live in web/src/match/engine.ts (pure; the server runs the shared match via web/src/match/hub.ts); AI only via the Python agent service in agents/ (called from web/src/insights/agents.functions.ts server fns) — keeps keys server-side and the UI usable without AI.
