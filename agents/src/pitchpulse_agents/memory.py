@@ -10,6 +10,7 @@ from .models import Insight
 
 @dataclass
 class AiredInsight:
+    moment_id: str
     minute: int
     insight: Insight
 
@@ -41,7 +42,9 @@ class MemoryStore:
         self, match_id: str, moment_id: str, minute: int, insight: Insight
     ) -> None:
         mem = self.get(match_id, moment_id)
-        mem.aired.append(AiredInsight(minute, insight))
+        if any(a.moment_id == moment_id for a in mem.aired):
+            return  # already recorded for another viewer of the same moment
+        mem.aired.append(AiredInsight(moment_id, minute, insight))
         del mem.aired[: -self._keep]
 
 

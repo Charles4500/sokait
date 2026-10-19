@@ -1,3 +1,10 @@
+import os
+
+# Tests always use the offline client, even when agents/.env holds real credentials:
+# load_dotenv never overrides variables that are already set.
+os.environ["OPENAI_API_KEY"] = ""
+os.environ["FOUNDRY_PROJECT_ENDPOINT"] = ""
+
 import pytest
 
 from pitchpulse_agents.models import MomentRequest

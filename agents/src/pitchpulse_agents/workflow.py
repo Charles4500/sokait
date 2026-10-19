@@ -17,6 +17,7 @@ from typing import Any, Never
 from agent_framework import Agent, Executor, WorkflowBuilder, WorkflowContext, handler
 
 from .agents import make_analyst, make_narrator, make_recap_editor
+from .cache import TTLCache
 from .clients import make_chat_client
 from .facts import Facts, build_facts, check_evidence, check_numbers
 from .memory import CircuitBreaker, MemoryStore
@@ -148,17 +149,26 @@ class Producer(Executor):
             await ctx.send_message(job)
 
 
-class AnalystExecutor(Executor):
-    """One persona-neutral insight per moment, with evidence checked against the facts."""
+@dataclass
+class Analysis:
+    insight: Insight | None
+    status: str  # trace status of the run that produced it
+    note: str
 
-    def __init__(self, agent: Agent, breaker: CircuitBreaker) -> None:
+
+class AnalystExecutor(Executor):
+    """One persona-neutral insight per moment, with evidence checked against the facts.
+    Shared by every request for the same moment, however many viewers are watching."""
+
+    def __init__(
+        self, agent: Agent, breaker: CircuitBreaker, cache: TTLCache[Analysis]
+    ) -> None:
         super().__init__(id="analyst")
         self.agent = agent
         self.breaker = breaker
+        self.cache = cache
 
-    @handler
-    async def run(self, job: Job, ctx: WorkflowContext[Analysed | Done]) -> None:
-        t = _Timer()
+    async def _analyse(self, job: Job) -> Analysis:
         payload: dict[str, Any] = {
             "event": job.req.event,
             "facts": job.facts,
@@ -174,13 +184,7 @@ class AnalystExecutor(Executor):
                 )
             except Exception as e:  # noqa: BLE001 - any model or network failure falls back
                 self.breaker.failure()
-                job.trace.append(
-                    TraceStep(
-                        agent="analyst", ms=t.ms, status="error", note=type(e).__name__
-                    )
-                )
-                await ctx.send_message(Done(job=job, show=True))
-                return
+                return Analysis(None, "error", type(e).__name__)
             insight = r.value if isinstance(r.value, Insight) else None
             issues = (
                 check_evidence(insight.evidence, job.facts)
@@ -188,29 +192,41 @@ class AnalystExecutor(Executor):
                 else ["unparseable output"]
             )
             if insight and not issues:
-                status = "ok" if attempt == 1 else "retry"
-                job.trace.append(
-                    TraceStep(
-                        agent="analyst", ms=t.ms, status=status, note=insight.category
-                    )
-                )
-                await ctx.send_message(Analysed(job=job, insight=insight))
-                return
-        job.trace.append(
-            TraceStep(
-                agent="analyst", ms=t.ms, status="error", note="; ".join(issues)[:200]
-            )
+                return Analysis(insight, "ok" if attempt == 1 else "retry", "")
+        return Analysis(None, "error", "; ".join(issues)[:200])
+
+    @handler
+    async def run(self, job: Job, ctx: WorkflowContext[Analysed | Done]) -> None:
+        t = _Timer()
+        result, cached = await self.cache.get_or_run(
+            moment_key(job.req),
+            lambda: self._analyse(job),
+            keep=lambda r: r.insight is not None,
         )
-        await ctx.send_message(Done(job=job, show=True))
+        assert result is not None
+        if result.insight is None:
+            job.trace.append(
+                TraceStep(agent="analyst", ms=t.ms, status="error", note=result.note)
+            )
+            await ctx.send_message(Done(job=job, show=True))
+            return
+        note = result.insight.category + (" · shared" if cached else "")
+        job.trace.append(
+            TraceStep(agent="analyst", ms=t.ms, status=result.status, note=note)
+        )
+        await ctx.send_message(Analysed(job=job, insight=result.insight))
 
 
 class NarratorExecutor(Executor):
     """Writes overlay text for every segment in parallel; redoes rejected ones on retry."""
 
-    def __init__(self, agent: Agent, breaker: CircuitBreaker) -> None:
+    def __init__(
+        self, agent: Agent, breaker: CircuitBreaker, cache: TTLCache[Draft]
+    ) -> None:
         super().__init__(id="narrator")
         self.agent = agent
         self.breaker = breaker
+        self.cache = cache
 
     async def _narrate(
         self, a: Analysed, seg: Segment, feedback: list[str] | None
@@ -236,17 +252,22 @@ class NarratorExecutor(Executor):
     async def first_draft(self, a: Analysed, ctx: WorkflowContext[Drafts]) -> None:
         t = _Timer()
         segs = {s.key(): s for s in a.job.req.segments}
+        drafts: dict[str, Draft] = {}
+        for k, seg in segs.items():
+            hit = self.cache.get(narration_key(a.job.req, seg))
+            if hit is not None:  # verified for another viewer in this segment
+                drafts[k] = Draft(segment=seg, text=hit.text, attempts=hit.attempts)
+        todo = {k: s for k, s in segs.items() if k not in drafts}
         texts = await asyncio.gather(
-            *(self._narrate(a, s, None) for s in segs.values())
+            *(self._narrate(a, s, None) for s in todo.values())
         )
-        drafts = {
-            k: Draft(segment=s, text=txt) for (k, s), txt in zip(segs.items(), texts)
-        }
-        a.job.trace.append(
-            TraceStep(
-                agent="narrator", ms=t.ms, status="ok", note=f"{len(drafts)} draft(s)"
-            )
+        drafts.update(
+            {k: Draft(segment=s, text=txt) for (k, s), txt in zip(todo.items(), texts)}
         )
+        note = f"{len(todo)} draft(s)" + (
+            f", {len(drafts) - len(todo)} shared" if len(todo) < len(drafts) else ""
+        )
+        a.job.trace.append(TraceStep(agent="narrator", ms=t.ms, status="ok", note=note))
         await ctx.send_message(Drafts(analysed=a, drafts=drafts))
 
     @handler
@@ -328,15 +349,21 @@ class FactCheckerExecutor(Executor):
 class Publisher(Executor):
     """Assembles the on-air overlay, falling back per segment, and updates match memory."""
 
-    def __init__(self, memory: MemoryStore, breaker: CircuitBreaker) -> None:
+    def __init__(
+        self, memory: MemoryStore, breaker: CircuitBreaker, cache: TTLCache[Draft]
+    ) -> None:
         super().__init__(id="publisher")
         self.memory = memory
         self.breaker = breaker
+        self.cache = cache
 
     @handler
     async def run(self, done: Done, ctx: WorkflowContext[Never, Overlay]) -> None:
         req = done.job.req
         overlay = assemble(req, done.job.trace, done.show, done.insight, done.drafts)
+        for dr in (done.drafts or {}).values():
+            if dr.text and not dr.issues:
+                self.cache.put(narration_key(req, dr.segment), dr)
         if not overlay.fallback:
             self.breaker.success()
             if done.insight:
@@ -344,6 +371,14 @@ class Publisher(Executor):
                     req.match_id, req.moment_id, req.minute, done.insight
                 )
         await ctx.yield_output(overlay)
+
+
+def moment_key(req: MomentRequest) -> str:
+    return f"{req.match_id}|{req.moment_id}"
+
+
+def narration_key(req: MomentRequest, seg: Segment) -> str:
+    return f"{moment_key(req)}|{seg.key()}"
 
 
 def assemble(
@@ -403,6 +438,8 @@ class InsightsEngine:
         self.recap_editor = make_recap_editor(self.client)
         self.memory = MemoryStore()
         self.breaker = CircuitBreaker()
+        self.analyses: TTLCache[Analysis] = TTLCache()
+        self.narrations: TTLCache[Draft] = TTLCache(max_items=4096)
         self.budget_s = (
             budget_s
             if budget_s is not None
@@ -412,10 +449,10 @@ class InsightsEngine:
     def build(self):
         # Built per moment: executors are cheap, and runs stay isolated under concurrency.
         producer = Producer(self.memory, self.breaker)
-        analyst = AnalystExecutor(self.analyst, self.breaker)
-        narrator = NarratorExecutor(self.narrator, self.breaker)
+        analyst = AnalystExecutor(self.analyst, self.breaker, self.analyses)
+        narrator = NarratorExecutor(self.narrator, self.breaker, self.narrations)
         checker = FactCheckerExecutor()
-        publisher = Publisher(self.memory, self.breaker)
+        publisher = Publisher(self.memory, self.breaker, self.narrations)
         return (
             WorkflowBuilder(
                 name="moment", start_executor=producer, output_from=[publisher]
