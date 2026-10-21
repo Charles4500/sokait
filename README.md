@@ -22,7 +22,7 @@ All clubs, players and events are synthetic. No real league data is used.
   happen, with shot map and heatmap views.
 - **Commentary that explains**: every key moment gets an instant deterministic
   explanation, then verified AI commentary ("What a strike from Pike! That equaliser pulls
-  the game back into balance…") in a broadcast-style lower third.
+  the game back into balance…") shown under the pitch like a live comment.
 - **Personalised**: casual fan, analyst or player focus; English, Swahili, Spanish, French,
   Arabic, Portuguese; favourite club and player; side-by-side Analyst vs Fan.
 - **Live timeline**: scrub back, replay from any goal, pause your own view, rejoin live.
@@ -30,8 +30,9 @@ All clubs, players and events are synthetic. No real league data is used.
   switch. YouTube-style keyboard shortcuts (`?` lists them).
 - **PitchPulse Listen**: spatial ball audio, earcons, spoken AI commentary and voice
   questions ("how is Mensah doing?"), with a screen-reader mode.
-- **Recaps and Q&A**: a Recap Editor agent writes match recaps; a Match Q&A agent answers
-  fans' questions. Both are fact-checked.
+- **Ask the match**: a floating assistant (or `/`) answers typed or spoken questions;
+  common ones on the device, the rest by a Match Q&A agent, fact-checked.
+- **Recaps**: a Recap Editor agent writes fact-checked match recaps.
 - **Transparent**: every insight shows how it was made: which agents ran, how long they
   took, the evidence used, and whether the text passed, was repaired or fell back.
 - **Partner feed**: a versioned, machine-readable overlay stream for broadcast graphics.
@@ -56,11 +57,12 @@ web/                    TypeScript web app (TanStack Start, React, Tailwind, sha
   src/components/       Dashboard sections and shadcn/ui primitives
   src/routes/           Matchday (/) and watch (/watch) pages; API routes (SSE streams,
                         matchday list, partner feed, TTS)
-  scripts/              Export a match's key moments for the evaluation
+  scripts/              Evaluation export, demo seed finder, portrait generation
 agents/                 Python agent service (Microsoft Agent Framework, FastAPI)
   src/pitchpulse_agents/  Agents, workflow, Fact-Checker, memory, cache, budget, models
   eval/                 Evaluation harness (live run and fault injection)
 voice/                  Speech service (Piper neural voices, GPL-3.0)
+infra/                  Azure Container Apps deployment (Bicep)
 docs/                   Architecture, evaluation, plan
 .github/workflows/      CI for all three services
 ```
@@ -91,6 +93,7 @@ voice service.
 | -------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`      | agents      | Any OpenAI-compatible provider (the demo uses Groq's free tier)                               |
 | `OPENAI_MODEL_<ROLE>`                                    | agents      | Per-agent model lists (`ANALYST`, `NARRATOR`, `QA`, `RECAP`); comma-separated lists fail over |
+| `GEMINI_API_KEY`                                         | agents      | Backup provider: `gemini:<model>` entries in the lists above                                  |
 | `FOUNDRY_PROJECT_ENDPOINT`, `FOUNDRY_MODEL`              | agents      | Microsoft Foundry model deployment                                                            |
 | `TOKENS_PER_MINUTE`, `TOKENS_PER_DAY`, `MOMENT_BUDGET_S` | agents      | Token budget and live time budget                                                             |
 | `AGENTS_URL`, `AGENTS_TOKEN`                             | web, agents | Agent service URL and shared token                                                            |
@@ -107,6 +110,20 @@ cd agents && uv run python eval/run_eval.py   # writes docs/EVAL.md
 ```
 
 CI runs type checks, linting, formatting, tests and container builds for every service.
+
+## Deploy to Azure
+
+Every service has a Dockerfile; `infra/main.bicep` runs them on Azure Container Apps (web
+app public, agent and voice services internal). Push the three images, then:
+
+```sh
+export OPENAI_API_KEY=... GEMINI_API_KEY=... AGENTS_TOKEN=$(openssl rand -hex 24) VOICE_TOKEN=$(openssl rand -hex 24)
+az group create -n pitchpulse -l westeurope
+az deployment group create -g pitchpulse -f infra/main.bicep -p infra/main.bicepparam
+```
+
+Set `foundryProjectEndpoint` in `infra/main.bicepparam` to use Microsoft Foundry models
+through the agent service's managed identity.
 
 ## Licence
 
