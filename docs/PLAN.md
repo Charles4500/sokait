@@ -21,7 +21,7 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 - [ ] Live evaluation run on a fresh daily quota → `docs/EVAL.md`
 - [ ] Demo video under 2 minutes (script below), uploaded to YouTube
 - [ ] Make the repo public; decide on the commit email
-- [ ] Submission text: pitch, Microsoft technologies, problem solved
+- [x] Submission text: `docs/SUBMISSION.md` (add the video link)
 
 ## Demo video (under 2:00)
 
