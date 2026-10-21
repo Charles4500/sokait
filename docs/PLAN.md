@@ -17,8 +17,7 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 
 ## Left
 
-- [ ] Realistic player portraits (FLUX.1-schnell, Apache-2.0), once the Hugging Face
-      token has Inference Providers permission
+- [x] Realistic player portraits (FLUX.1-schnell on Cloudflare Workers AI)
 - [ ] Live evaluation run on a fresh daily quota → `docs/EVAL.md`
 - [ ] Demo video under 2 minutes (script below), uploaded to YouTube
 - [ ] Make the repo public; decide on the commit email
