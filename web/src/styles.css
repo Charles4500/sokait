@@ -175,3 +175,32 @@
 .animate-live {
   animation: live-pulse 1.4s infinite;
 }
+
+/* A goal in another live match: the playlist row pops and glows so it's easy to jump in. */
+@keyframes goal-pop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--win) 70%, transparent);
+  }
+  15% {
+    transform: scale(1.06);
+  }
+  30% {
+    transform: scale(0.98);
+  }
+  45% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+.animate-goal {
+  animation: goal-pop 1.4s ease-out 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-goal {
+    animation: none;
+  }
+}

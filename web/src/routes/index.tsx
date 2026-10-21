@@ -13,7 +13,7 @@ import type { Prefs } from "@/components/dashboard/types";
 import { WinProbability } from "@/components/dashboard/win-probability";
 import { FIXTURES, fixtureById } from "@/match/engine";
 import { FixtureContext, fixtureInfo } from "@/match/fixture-context";
-import { LiveNow } from "@/components/dashboard/live-now";
+import { LivePlaylist } from "@/components/dashboard/live-now";
 import { useMatchInsights } from "@/insights/use-match-insights";
 import { useMatchStream } from "@/match/use-match-stream";
 import { usePlayback } from "@/match/use-playback";
@@ -227,6 +227,13 @@ function Dashboard() {
                   favStats={m.favStats}
                   tag={m.tag}
                   onAir={m.onAir}
+                  corner={
+                    <LivePlaylist
+                      current={fixtureId}
+                      favClub={prefs.favClub}
+                      onSelect={switchMatch}
+                    />
+                  }
                 />
                 <MatchTimeline
                   events={live.events}
@@ -258,7 +265,6 @@ function Dashboard() {
                 fav={m.fav}
                 control={control}
               />
-              <LiveNow current={fixtureId} favClub={prefs.favClub} onSelect={switchMatch} />
               <MatchStats stats={m.stats} star={m.star} starStats={m.starStats} />
               {prefs.compare && <ComparePanel dual={m.dual} stats={m.stats} />}
               <div className="grid gap-4 md:grid-cols-2">

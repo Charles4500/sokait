@@ -21,6 +21,7 @@ export function MatchVideo({
   favStats,
   tag,
   onAir,
+  corner,
 }: {
   events: MatchEvent[];
   score: Record<TeamId, number>;
@@ -31,6 +32,8 @@ export function MatchVideo({
   favStats: PlayerStats;
   tag: { id: number; text: string; player: Player } | null;
   onAir: OnAir | null;
+  /** Bottom-right corner of the pitch, e.g. the Live now playlist. */
+  corner?: React.ReactNode;
 }) {
   const [view, setView] = useState<PitchView>("live");
   const info = useFixture();
@@ -102,6 +105,7 @@ export function MatchVideo({
             </div>
           </div>
         )}
+        {corner && <div className="absolute bottom-3 right-3 z-10">{corner}</div>}
       </div>
 
       {/* Lower third: the on-air insight, docked under the pitch */}
