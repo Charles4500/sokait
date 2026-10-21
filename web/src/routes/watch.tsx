@@ -144,6 +144,7 @@ function Dashboard() {
   // Keyboard shortcuts, YouTube-style, with a brief flash showing what happened.
   const stageRef = useRef<HTMLDivElement>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
   const { flash, show } = useFlash();
   const fmtDelta = (s: number) => `${s < 0 ? "−" : "+"}${Math.abs(s) / 60}:00`;
   const run = useCallback(
@@ -193,6 +194,8 @@ function Dashboard() {
         }
         case "help":
           return setHelpOpen(true);
+        case "ask":
+          return setAskOpen(true);
         case "nextMatch":
         case "prevMatch": {
           const i = FIXTURES.findIndex((f) => f.id === fixtureId);
@@ -327,6 +330,8 @@ function Dashboard() {
         </div>
       </div>
       <MatchAssistant
+        open={askOpen}
+        onOpenChange={setAskOpen}
         voice={prefs.voice}
         ctx={{
           events: live.events,

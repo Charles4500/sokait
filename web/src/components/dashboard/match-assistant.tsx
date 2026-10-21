@@ -23,8 +23,17 @@ interface Turn {
 const SUGGESTIONS = ["Who's winning?", "How is my player doing?", "Why does it matter?"];
 
 /** Floating "Ask the match" assistant: type or speak a question about the live match. */
-export function MatchAssistant({ ctx, voice }: { ctx: AskContext; voice: boolean }) {
-  const [open, setOpen] = useState(false);
+export function MatchAssistant({
+  ctx,
+  voice,
+  open,
+  onOpenChange,
+}: {
+  ctx: AskContext;
+  voice: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -69,9 +78,10 @@ export function MatchAssistant({ ctx, voice }: { ctx: AskContext; voice: boolean
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
         aria-label="Ask the match"
+        title="Ask the match (/)"
         className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-cta transition-transform hover:scale-105 data-[state=open]:scale-95"
       >
         <MagicStar variant="Bulk" className="h-6 w-6" />

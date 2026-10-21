@@ -15,6 +15,7 @@ export type ShortcutAction =
   | "help"
   | "nextMatch"
   | "prevMatch"
+  | "ask"
   | `jump${number}`;
 
 /** One table drives both the key handler and the help dialog. YouTube-style keys. */
@@ -31,11 +32,13 @@ export const SHORTCUTS: { keys: string[]; label: string; action: ShortcutAction 
   { keys: ["V"], label: "Next viewing mode", action: "mode" },
   { keys: ["N"], label: "Next live match", action: "nextMatch" },
   { keys: ["Shift", "N"], label: "Previous live match", action: "prevMatch" },
+  { keys: ["/"], label: "Ask the match", action: "ask" },
   { keys: ["?"], label: "Show shortcuts", action: "help" },
 ];
 
 function actionFor(e: KeyboardEvent): ShortcutAction | null {
   if (e.key === "?") return "help";
+  if (e.key === "/") return "ask";
   if (/^[0-9]$/.test(e.key)) return `jump${Number(e.key)}`;
   switch (e.key) {
     case "f":
