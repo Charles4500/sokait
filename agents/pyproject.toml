@@ -12,7 +12,6 @@ dependencies = [
     "agent-framework-openai>=1.17",
     "azure-identity>=1.26",
     "fastapi>=0.115",
-    "piper-tts>=1.8.0",
     "python-dotenv>=1.2.4",
     "uvicorn[standard]>=0.30",
 ]

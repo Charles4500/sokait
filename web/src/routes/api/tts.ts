@@ -6,16 +6,16 @@ const Body = z.object({
   language: z.string().max(30),
 });
 
-// Spoken commentary from the agent service's Piper voices. Proxied so the agent
-// service URL and token never reach the browser.
+// Spoken commentary from the voice service (voice/, Piper neural voices). Proxied so
+// the voice service URL and token never reach the browser.
 export const Route = createFileRoute("/api/tts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const parsed = Body.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return Response.json({ error: "Invalid body" }, { status: 400 });
-        const base = process.env["AGENTS_URL"] ?? "http://localhost:8000";
-        const token = process.env["AGENTS_TOKEN"];
+        const base = process.env["VOICE_URL"] ?? "http://localhost:8001";
+        const token = process.env["VOICE_TOKEN"];
         try {
           const res = await fetch(`${base}/tts`, {
             method: "POST",
@@ -24,7 +24,8 @@ export const Route = createFileRoute("/api/tts")({
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(parsed.data),
-            signal: AbortSignal.timeout(10000),
+            // A language's first line loads its voice, which can take several seconds.
+            signal: AbortSignal.timeout(20000),
           });
           if (!res.ok) return Response.json({ error: "No voice" }, { status: res.status });
           return new Response(res.body, {

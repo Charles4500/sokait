@@ -42,6 +42,21 @@ jobs:
       # No model credentials in CI: the offline client exercises the full workflow.
       - run: uv run pytest -q
 
+  voice:
+    name: Voice service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: voice
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      # No voice files in CI: tests check the API contract and the 404 path.
+      - run: uv run pytest -q
+
   agents-image:
     name: Agent service image
     runs-on: ubuntu-latest

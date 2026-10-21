@@ -1,7 +1,7 @@
 // Spoken commentary. Two engines:
 //  - "browser": the Web Speech API, used only when the browser has a natural voice for
 //    the language (Microsoft Edge's online voices, Chrome's Google voices).
-//  - "server": Piper neural voices from the agent service via /api/tts. Used everywhere
+//  - "server": Piper neural voices from the voice service via /api/tts. Used everywhere
 //    else, e.g. Chrome on Linux (no voices) or Firefox (robotic espeak voices).
 
 export const LANG_CODES: Record<string, string> = {

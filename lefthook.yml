@@ -16,6 +16,10 @@ pre-commit:
       root: "agents/"
       glob: "*.py"
       run: uv run ruff check {staged_files} && uv run ruff format --check {staged_files}
+    voice-lint:
+      root: "voice/"
+      glob: "*.py"
+      run: uv run ruff check {staged_files} && uv run ruff format --check {staged_files}
 
 commit-msg:
   commands:
@@ -37,4 +41,7 @@ pre-push:
       run: bun run typecheck && bun run test
     agents-test:
       root: "agents/"
+      run: uv run pytest -q
+    voice-test:
+      root: "voice/"
       run: uv run pytest -q
