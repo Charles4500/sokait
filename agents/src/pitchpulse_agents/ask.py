@@ -9,6 +9,7 @@ from typing import Any
 
 from agent_framework import Agent
 
+from .budget import TokenBudget
 from .clients import run_options
 from .facts import build_ask_facts, check_numbers
 from .memory import CircuitBreaker, MemoryStore
@@ -27,6 +28,7 @@ async def answer_question(
     agent: Agent,
     memory: MemoryStore,
     breaker: CircuitBreaker,
+    tokens: TokenBudget,
     budget_s: float,
 ) -> Answer:
     t0 = time.perf_counter()
@@ -54,9 +56,15 @@ async def answer_question(
     trace: list[TraceStep] = []
     issues: list[str] = []
 
-    if breaker.is_open:
+    spent = tokens.min_importance() is None
+    if breaker.is_open or spent:
         trace.append(
-            TraceStep(agent="match_qa", ms=0, status="skipped", note="circuit open")
+            TraceStep(
+                agent="match_qa",
+                ms=0,
+                status="skipped",
+                note="token budget spent" if spent else "circuit open",
+            )
         )
     else:
         for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -67,6 +75,7 @@ async def answer_question(
                     agent.run(json.dumps(payload), options=run_options(AskOut)),
                     timeout=budget_s,
                 )
+                tokens.record(r)
             except TimeoutError:
                 breaker.failure()
                 trace.append(TraceStep(agent="match_qa", ms=ms(), status="timeout"))

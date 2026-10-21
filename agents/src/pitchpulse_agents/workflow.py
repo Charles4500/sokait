@@ -18,6 +18,7 @@ from agent_framework import Agent, Executor, WorkflowBuilder, WorkflowContext, h
 
 from .agents import make_analyst, make_match_qa, make_narrator, make_recap_editor
 from .ask import answer_question
+from .budget import TokenBudget
 from .cache import TTLCache
 from .clients import make_chat_client, run_options
 from .facts import (
@@ -109,12 +110,16 @@ class _Timer:
 
 
 class Producer(Executor):
-    """Decides whether the moment goes on air and whether AI may run."""
+    """Decides whether the moment goes on air and whether AI may run: not while the
+    circuit is open, and only for big enough moments when the token budget is tight."""
 
-    def __init__(self, memory: MemoryStore, breaker: CircuitBreaker) -> None:
+    def __init__(
+        self, memory: MemoryStore, breaker: CircuitBreaker, budget: TokenBudget
+    ) -> None:
         super().__init__(id="producer")
         self.memory = memory
         self.breaker = breaker
+        self.budget = budget
 
     @handler
     async def run(self, req: MomentRequest, ctx: WorkflowContext[Job | Done]) -> None:
@@ -130,8 +135,12 @@ class Producer(Executor):
         player_focus = any(
             s.persona == "player" and s.favourite_player == actor for s in req.segments
         )
-        show = (
-            float(req.event.get("importance", 0)) >= ON_AIR_IMPORTANCE or player_focus
+        importance = float(req.event.get("importance", 0))
+        show = importance >= ON_AIR_IMPORTANCE or player_focus
+        need = self.budget.min_importance()
+        # Player-focus moments get AI only while the budget is relaxed.
+        worth_ai = need is not None and (
+            importance >= need or (player_focus and need <= ON_AIR_IMPORTANCE)
         )
         if not show:
             job.trace.append(
@@ -150,6 +159,22 @@ class Producer(Executor):
                     ms=t.ms,
                     status="skipped",
                     note="circuit open: deterministic mode",
+                )
+            )
+            await ctx.send_message(Done(job=job, show=True))
+        elif not worth_ai:
+            used = round(self.budget.pressure() * 100)
+            job.trace.append(
+                TraceStep(
+                    agent="producer",
+                    ms=t.ms,
+                    status="skipped",
+                    note=f"token budget {used}% used: "
+                    + (
+                        "deterministic until it resets"
+                        if need is None
+                        else "AI saved for bigger moments"
+                    ),
                 )
             )
             await ctx.send_message(Done(job=job, show=True))
@@ -177,12 +202,17 @@ class AnalystExecutor(Executor):
     Shared by every request for the same moment, however many viewers are watching."""
 
     def __init__(
-        self, agent: Agent, breaker: CircuitBreaker, cache: TTLCache[Analysis]
+        self,
+        agent: Agent,
+        breaker: CircuitBreaker,
+        cache: TTLCache[Analysis],
+        budget: TokenBudget,
     ) -> None:
         super().__init__(id="analyst")
         self.agent = agent
         self.breaker = breaker
         self.cache = cache
+        self.budget = budget
 
     async def _analyse(self, job: Job) -> Analysis:
         payload: dict[str, Any] = {
@@ -198,6 +228,7 @@ class AnalystExecutor(Executor):
                 r = await self.agent.run(
                     json.dumps(payload), options=run_options(Insight)
                 )
+                self.budget.record(r)
             except Exception as e:  # noqa: BLE001 - any model or network failure falls back
                 self.breaker.failure()
                 return Analysis(None, "error", type(e).__name__)
@@ -237,12 +268,17 @@ class NarratorExecutor(Executor):
     """Writes overlay text for every segment in parallel; redoes rejected ones on retry."""
 
     def __init__(
-        self, agent: Agent, breaker: CircuitBreaker, cache: TTLCache[Draft]
+        self,
+        agent: Agent,
+        breaker: CircuitBreaker,
+        cache: TTLCache[Draft],
+        budget: TokenBudget,
     ) -> None:
         super().__init__(id="narrator")
         self.agent = agent
         self.breaker = breaker
         self.cache = cache
+        self.budget = budget
 
     async def _narrate(
         self, a: Analysed, seg: Segment, feedback: list[str] | None
@@ -260,6 +296,7 @@ class NarratorExecutor(Executor):
             r = await self.agent.run(
                 json.dumps(payload), options=run_options(NarrationOut)
             )
+            self.budget.record(r)
         except Exception:  # noqa: BLE001 - any model failure falls back
             self.breaker.failure()
             return None
@@ -461,6 +498,7 @@ class InsightsEngine:
         self.match_qa = make_match_qa(client or make_chat_client("qa"))
         self.memory = MemoryStore()
         self.breaker = CircuitBreaker()
+        self.budget = TokenBudget()
         self.analyses: TTLCache[Analysis] = TTLCache()
         self.narrations: TTLCache[Draft] = TTLCache(max_items=4096)
         self.budget_s = (
@@ -471,9 +509,13 @@ class InsightsEngine:
 
     def build(self):
         # Built per moment: executors are cheap, and runs stay isolated under concurrency.
-        producer = Producer(self.memory, self.breaker)
-        analyst = AnalystExecutor(self.analyst, self.breaker, self.analyses)
-        narrator = NarratorExecutor(self.narrator, self.breaker, self.narrations)
+        producer = Producer(self.memory, self.breaker, self.budget)
+        analyst = AnalystExecutor(
+            self.analyst, self.breaker, self.analyses, self.budget
+        )
+        narrator = NarratorExecutor(
+            self.narrator, self.breaker, self.narrations, self.budget
+        )
         checker = FactCheckerExecutor()
         publisher = Publisher(self.memory, self.breaker, self.narrations)
         return (
@@ -512,13 +554,13 @@ class InsightsEngine:
 
     async def recap(self, req: RecapRequest) -> Recap:
         # Recaps are longer than overlays and not on the live path: allow a bigger budget.
-        budget = max(self.budget_s * 4, 10.0)
+        time_budget = max(self.budget_s * 4, 10.0)
         return await write_recap(
-            req, self.recap_editor, self.memory, self.breaker, budget
+            req, self.recap_editor, self.memory, self.breaker, self.budget, time_budget
         )
 
     async def ask(self, req: AskRequest) -> Answer:
         # A listener is waiting for a spoken reply: keep it close to the live budget.
         return await answer_question(
-            req, self.match_qa, self.memory, self.breaker, self.budget_s
+            req, self.match_qa, self.memory, self.breaker, self.budget, self.budget_s
         )

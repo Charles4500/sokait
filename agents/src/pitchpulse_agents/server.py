@@ -32,6 +32,7 @@ async def healthz() -> dict:
         "backend": backend_name(),
         "circuit_open": engine.breaker.is_open,
         "budget_s": engine.budget_s,
+        "tokens": engine.budget.stats(),
         "cache": {
             "analyses": engine.analyses.stats(),
             "narrations": engine.narrations.stats(),

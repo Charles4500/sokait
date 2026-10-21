@@ -9,6 +9,7 @@ from typing import Any
 
 from agent_framework import Agent
 
+from .budget import TokenBudget
 from .clients import run_options
 from .facts import build_recap_facts, check_numbers
 from .memory import CircuitBreaker, MemoryStore
@@ -42,6 +43,7 @@ async def write_recap(
     agent: Agent,
     memory: MemoryStore,
     breaker: CircuitBreaker,
+    tokens: TokenBudget,
     budget_s: float,
 ) -> Recap:
     t0 = time.perf_counter()
@@ -58,7 +60,8 @@ async def write_recap(
     trace: list[TraceStep] = []
     issues: list[str] = []
 
-    if not breaker.is_open:
+    spent = tokens.min_importance() is None
+    if not breaker.is_open and not spent:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             if issues:
                 payload["feedback"] = issues
@@ -67,6 +70,7 @@ async def write_recap(
                     agent.run(json.dumps(payload), options=run_options(RecapOut)),
                     timeout=budget_s,
                 )
+                tokens.record(r)
             except TimeoutError:
                 breaker.failure()
                 trace.append(TraceStep(agent="recap_editor", ms=ms(), status="timeout"))
@@ -116,7 +120,12 @@ async def write_recap(
                 )
     else:
         trace.append(
-            TraceStep(agent="recap_editor", ms=0, status="skipped", note="circuit open")
+            TraceStep(
+                agent="recap_editor",
+                ms=0,
+                status="skipped",
+                note="token budget spent" if spent else "circuit open",
+            )
         )
 
     plain = deterministic_recap({**payload, "teams": payload["teams"]})
