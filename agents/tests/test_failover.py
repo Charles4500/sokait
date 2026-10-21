@@ -30,17 +30,17 @@ def test_wait_is_read_from_the_provider_message():
 
 
 def test_backup_provider_joins_only_with_a_key(monkeypatch):
-    chain = "openai/gpt-oss-120b,gemini:gemini-2.5-flash"
+    chain = "openai/gpt-oss-120b,gemini:gemini-3.5-flash"
     monkeypatch.setenv("OPENAI_MODEL_QA", chain)
     monkeypatch.setenv("OPENAI_API_KEY", "groq")
     assert available_models("qa") == [("OPENAI", "openai/gpt-oss-120b")]
     monkeypatch.setenv("GEMINI_API_KEY", "gemini")
     assert available_models("qa") == [
         ("OPENAI", "openai/gpt-oss-120b"),
-        ("GEMINI", "gemini-2.5-flash"),
+        ("GEMINI", "gemini-3.5-flash"),
     ]
     monkeypatch.setenv("OPENAI_API_KEY", "")
-    assert available_models("qa") == [("GEMINI", "gemini-2.5-flash")]
+    assert available_models("qa") == [("GEMINI", "gemini-3.5-flash")]
 
 
 class Exhausted(OfflineChatClient):

@@ -6,7 +6,7 @@
                        models per agent: a comma-separated list fails over in order when a
                        model is rate-limited. OPENAI_REASONING_EFFORT tunes reasoning models.
                        A "provider:model" entry uses <PROVIDER>_API_KEY / _BASE_URL instead,
-                       e.g. "gemini:gemini-2.5-flash" with GEMINI_API_KEY as a backup that
+                       e.g. "gemini:gemini-3.5-flash" with GEMINI_API_KEY as a backup that
                        has its own free quota. Entries without a key are skipped.
 3. Offline             nothing set: deterministic rule-based client, no network
 """
