@@ -1,9 +1,11 @@
 // Generated artwork for synthetic clubs and players (DiceBear, CC0 styles): unique,
 // consistent for the same seed, made locally with no network call.
+import { useState } from "react";
 import { createAvatar } from "@dicebear/core";
 import * as notionists from "@dicebear/notionists";
 import * as shapes from "@dicebear/shapes";
 import type { Player, TeamId } from "@/match/engine";
+import { photoOf } from "./player-art";
 import { useFixture } from "@/match/fixture-context";
 
 // Close to the --team-home / --team-away theme colours.
@@ -61,6 +63,17 @@ export function ClubBadge({
   );
 }
 
+/** Illustrated fallback when a player has no generated portrait. */
+function drawnFace(player: Player): string {
+  return dataUri(`player:${player.id}`, () =>
+    createAvatar(notionists, {
+      seed: player.id,
+      backgroundColor: ["f1f1f4"],
+      radius: 50,
+    }).toDataUri(),
+  );
+}
+
 /** A player's face, ringed in his club's colour. */
 export function PlayerAvatar({
   player,
@@ -71,21 +84,17 @@ export function PlayerAvatar({
   size?: number;
   className?: string;
 }) {
-  const src = dataUri(`player:${player.id}`, () =>
-    createAvatar(notionists, {
-      seed: player.id,
-      backgroundColor: ["f1f1f4"],
-      radius: 50,
-    }).toDataUri(),
-  );
+  const [photo, setPhoto] = useState(true);
   return (
     <img
-      src={src}
+      src={photo ? photoOf(player) : drawnFace(player)}
+      onError={() => setPhoto(false)}
       alt=""
       aria-hidden
       width={size}
       height={size}
-      className={`shrink-0 rounded-full ring-2 ${RING[player.team]} ${className}`}
+      loading="lazy"
+      className={`shrink-0 rounded-full object-cover ring-2 ${RING[player.team]} ${className}`}
       style={{ width: size, height: size }}
     />
   );

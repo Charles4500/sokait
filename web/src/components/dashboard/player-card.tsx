@@ -1,10 +1,12 @@
 // Game-style player art: a face in the club's kit, and an EA FC-style card whose
 // ratings come from what the player has actually done in this (synthetic) match.
+import { useState } from "react";
 import { createAvatar } from "@dicebear/core";
 import * as notionists from "@dicebear/notionists";
 import type { Player, TeamId } from "@/match/engine";
 import { useFixture } from "@/match/fixture-context";
 import { ClubBadge } from "./avatars";
+import { photoOf } from "./player-art";
 import type { PlayerStats } from "./types";
 
 const KIT: Record<TeamId, { shirt: string; trim: string }> = {
@@ -27,8 +29,34 @@ function face(player: Player): string {
   return uri;
 }
 
-/** Head and shoulders in the club's kit, with the shirt number. */
+/** The player's generated portrait with his shirt number in kit colour; the illustrated
+ *  version stands in when a portrait is missing. */
 export function PlayerPortrait({ player, size = 96 }: { player: Player; size?: number }) {
+  const [photo, setPhoto] = useState(true);
+  if (!photo) return <DrawnPortrait player={player} size={size} />;
+  const fade = "linear-gradient(to bottom, black 72%, transparent)";
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size * 1.05 }}>
+      <img
+        src={photoOf(player)}
+        onError={() => setPhoto(false)}
+        alt=""
+        aria-hidden
+        className="h-full w-full rounded-xl object-cover object-top"
+        style={{ maskImage: fade, WebkitMaskImage: fade }}
+      />
+      <span
+        className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 rounded-md px-1.5 font-display text-xs font-extrabold text-white shadow-md"
+        style={{ background: KIT[player.team].shirt }}
+      >
+        {player.num}
+      </span>
+    </div>
+  );
+}
+
+/** Illustrated head and shoulders in the club's kit, with the shirt number. */
+function DrawnPortrait({ player, size }: { player: Player; size: number }) {
   const kit = KIT[player.team];
   return (
     <svg
