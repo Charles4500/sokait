@@ -10,6 +10,14 @@ export const MODE_LABEL: Record<Mode, string> = {
   player: "Player focus",
 };
 export const LANGS = ["English", "Swahili", "Spanish", "French", "Arabic", "Portuguese"];
+export const LANG_SHORT: Record<string, string> = {
+  English: "EN",
+  Swahili: "SW",
+  Spanish: "ES",
+  French: "FR",
+  Arabic: "AR",
+  Portuguese: "PT",
+};
 
 /** Everything the viewer can personalise. */
 export interface Prefs {

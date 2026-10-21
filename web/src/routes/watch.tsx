@@ -276,6 +276,11 @@ function Dashboard() {
                   onFullscreen={() => run("fullscreen")}
                   voice={prefs.voice}
                   onVoice={() => run("voice")}
+                  lang={prefs.lang}
+                  onLang={(lang) => {
+                    update({ lang });
+                    show(lang);
+                  }}
                 />
                 {flash && (
                   <div

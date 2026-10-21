@@ -1,6 +1,14 @@
 import { Maximize4, Pause, Play, VolumeHigh, VolumeSlash } from "iconsax-reactjs";
 import { MATCH_LENGTH_S, type MatchEvent } from "@/match/engine";
 import { clockOf } from "@/match/use-playback";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LANGS, LANG_SHORT } from "./types";
 
 const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
@@ -22,6 +30,8 @@ export function MatchTimeline({
   onFullscreen,
   voice,
   onVoice,
+  lang,
+  onLang,
 }: {
   events: MatchEvent[];
   liveClock: number;
@@ -36,12 +46,15 @@ export function MatchTimeline({
   /** AI voice commentary on or off (off by default). */
   voice: boolean;
   onVoice: () => void;
+  /** Commentary language, switchable right here. */
+  lang: string;
+  onLang: (lang: string) => void;
 }) {
   const markers = events.filter((e) => e.type === "goal" || e.importance >= 0.7);
   const behind = liveClock - viewClock;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl glass px-3 py-2">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl glass px-3 py-2 sm:flex-nowrap">
       <button
         onClick={onToggle}
         aria-label={playing ? "Pause your view" : "Play"}
@@ -64,7 +77,24 @@ export function MatchTimeline({
         )}
       </button>
 
-      <div className="relative h-6 min-w-0 flex-1">
+      <Select value={lang} onValueChange={onLang}>
+        <SelectTrigger
+          aria-label="Commentary language"
+          title="Commentary language"
+          className="h-8 w-auto shrink-0 gap-1 rounded-full border-border bg-transparent px-2.5 text-xs font-semibold"
+        >
+          <SelectValue>{LANG_SHORT[lang] ?? lang}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {LANGS.map((l) => (
+            <SelectItem key={l} value={l}>
+              {l}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <div className="relative order-last h-6 min-w-0 basis-full sm:order-none sm:basis-auto sm:flex-1">
         {/* Track: what has been played so far, and where you are */}
         <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-border" />
         <div
@@ -107,7 +137,7 @@ export function MatchTimeline({
         />
       </div>
 
-      <span className="shrink-0 font-display text-xs tabular-nums">
+      <span className="ml-auto shrink-0 font-display text-xs tabular-nums sm:ml-0">
         {fmt(viewClock)}
         {!isLive && <span className="text-muted-foreground"> · {fmt(behind)} behind</span>}
       </span>
