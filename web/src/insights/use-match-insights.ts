@@ -110,7 +110,15 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
     const why = explain(e, stats);
     const title = `${e.minute}' ${e.label}`;
     setFeed((f) => [{ e, why }, ...f].slice(0, 30));
-    setOnAir({ title, text: why, ai: false });
+    setOnAir({
+      title,
+      text: why,
+      ai: false,
+      team: e.team,
+      minute: e.minute,
+      label: e.label,
+      durationMs: e.type === "goal" ? 8000 : 4500,
+    });
     if (Date.now() - lastAi.current < AI_COOLDOWN_MS) return;
     lastAi.current = Date.now();
 

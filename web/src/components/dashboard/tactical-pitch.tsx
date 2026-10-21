@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { PITCH, PLAYERS, TEAMS, type MatchEvent, type TeamId } from "@/match/engine";
 import { playerPositions } from "@/match/pitch-layout";
 
-type View = "live" | "shots" | "heat";
-const VIEWS: { id: View; label: string }[] = [
+export type PitchView = "live" | "shots" | "heat";
+const VIEWS: { id: PitchView; label: string }[] = [
   { id: "live", label: "Live" },
   { id: "shots", label: "Shot map" },
   { id: "heat", label: "Heatmap" },
@@ -24,16 +24,15 @@ export function TacticalPitch({
   events,
   favPlayer,
   playerFocus,
-  favClub,
+  view,
+  heatTeam,
 }: {
   events: MatchEvent[];
   favPlayer: string;
   playerFocus: boolean;
-  favClub: TeamId;
+  view: PitchView;
+  heatTeam: TeamId;
 }) {
-  const [view, setView] = useState<View>("live");
-  const [heatTeam, setHeatTeam] = useState<TeamId>(favClub);
-
   return (
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.32_0.07_150),oklch(0.2_0.04_160))]">
       <svg
@@ -63,37 +62,6 @@ export function TacticalPitch({
         {view === "shots" && <ShotMap events={events} />}
         {view === "heat" && <Heatmap events={events} team={heatTeam} />}
       </svg>
-
-      {/* View switch */}
-      <div className="absolute bottom-3 right-3 flex items-center gap-2">
-        {view === "heat" && (
-          <div className="flex rounded-full glass p-0.5 text-[11px]">
-            {(["home", "away"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setHeatTeam(t)}
-                aria-pressed={heatTeam === t}
-                className={`rounded-full px-2.5 py-1 ${heatTeam === t ? "bg-secondary" : "text-muted-foreground"}`}
-              >
-                {TEAMS[t].short}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="flex rounded-full glass p-0.5 text-[11px]" role="tablist">
-          {VIEWS.map((v) => (
-            <button
-              key={v.id}
-              role="tab"
-              aria-selected={view === v.id}
-              onClick={() => setView(v.id)}
-              className={`rounded-full px-2.5 py-1 ${view === v.id ? "bg-secondary" : "text-muted-foreground"}`}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -390,5 +358,50 @@ function Heatmap({ events, team }: { events: MatchEvent[]; team: TeamId }) {
         {team === "home" ? "→" : "←"}
       </text>
     </g>
+  );
+}
+
+/** Live / Shot map / Heatmap switch, shown in the broadcast strip under the pitch. */
+export function PitchViewSwitch({
+  view,
+  setView,
+  heatTeam,
+  setHeatTeam,
+}: {
+  view: PitchView;
+  setView: (v: PitchView) => void;
+  heatTeam: TeamId;
+  setHeatTeam: (t: TeamId) => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      {view === "heat" && (
+        <div className="flex rounded-full glass p-0.5 text-[11px]">
+          {(["home", "away"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setHeatTeam(t)}
+              aria-pressed={heatTeam === t}
+              className={`rounded-full px-2.5 py-1 ${heatTeam === t ? "bg-secondary" : "text-muted-foreground"}`}
+            >
+              {TEAMS[t].short}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex rounded-full glass p-0.5 text-[11px]" role="tablist">
+        {VIEWS.map((v) => (
+          <button
+            key={v.id}
+            role="tab"
+            aria-selected={view === v.id}
+            onClick={() => setView(v.id)}
+            className={`rounded-full px-2.5 py-1 ${view === v.id ? "bg-secondary" : "text-muted-foreground"}`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

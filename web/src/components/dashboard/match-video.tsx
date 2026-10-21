@@ -1,12 +1,14 @@
+import { useEffect, useState } from "react";
 import { Flash, MagicStar } from "iconsax-reactjs";
 import { VerifiedBadge } from "./agent-trace";
 import { TEAMS, type MatchEvent, type Player, type TeamId } from "@/match/engine";
 import type { MatchStatus } from "@/match/hub";
 import { Crest } from "./crest";
-import { TacticalPitch } from "./tactical-pitch";
+import { PitchViewSwitch, TacticalPitch, type PitchView } from "./tactical-pitch";
 import type { OnAir, PlayerStats, Prefs } from "./types";
 
-/** The live tactical view with everything a broadcast would overlay on it. */
+/** The live tactical view: overlays at the top, and a broadcast "lower third" strip
+ *  under the pitch so insights never cover the play. */
 export function MatchVideo({
   events,
   score,
@@ -28,87 +30,131 @@ export function MatchVideo({
   tag: { id: number; text: string } | null;
   onAir: OnAir | null;
 }) {
-  return (
-    <section className="relative aspect-video max-h-[70vh] w-full overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
-      <TacticalPitch
-        events={events}
-        favPlayer={prefs.favPlayer}
-        playerFocus={prefs.mode === "player"}
-        favClub={prefs.favClub}
-      />
+  const [view, setView] = useState<PitchView>("live");
+  const [heatTeam, setHeatTeam] = useState<TeamId>(prefs.favClub);
 
-      {/* Scorebug */}
-      <div className="absolute left-4 top-4 flex items-center gap-3 rounded-full glass px-4 py-2 font-display">
-        <Crest team="home" size={26} /> {prefs.favClub === "home" && "♥ "}
-        {TEAMS.home.short}{" "}
-        <span className="text-xl">
-          {score.home} - {score.away}
-        </span>{" "}
-        {TEAMS.away.short}
-        {prefs.favClub === "away" && " ♥"} <Crest team="away" size={26} />
-        <span className="ml-2 rounded-md bg-win/20 px-2 text-xs text-win">
-          {status === "finished" ? "FT" : `${minute}'`}
-        </span>
+  return (
+    <section className="flex aspect-video max-h-[70vh] w-full flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
+      <div className="relative min-h-0 flex-1">
+        <TacticalPitch
+          events={events}
+          favPlayer={prefs.favPlayer}
+          playerFocus={prefs.mode === "player"}
+          view={view}
+          heatTeam={heatTeam}
+        />
+
+        {/* Scorebug */}
+        <div className="absolute left-4 top-4 flex items-center gap-3 rounded-full glass px-4 py-2 font-display">
+          <Crest team="home" size={26} /> {prefs.favClub === "home" && "♥ "}
+          {TEAMS.home.short}{" "}
+          <span className="text-xl">
+            {score.home} - {score.away}
+          </span>{" "}
+          {TEAMS.away.short}
+          {prefs.favClub === "away" && " ♥"} <Crest team="away" size={26} />
+          <span className="ml-2 rounded-md bg-win/20 px-2 text-xs text-win">
+            {status === "finished" ? "FT" : `${minute}'`}
+          </span>
+        </div>
+
+        {/* Threshold-triggered player tag (speed / distance) */}
+        {tag && (
+          <div
+            key={tag.id}
+            className="absolute left-1/2 top-16 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
+          >
+            <Flash className="mr-1 inline h-3.5 w-3.5" />
+            {tag.text}
+          </div>
+        )}
+
+        {/* Player focus card */}
+        {prefs.mode === "player" && (
+          <div className="absolute right-4 top-4 w-52 rounded-xl glass p-3 text-xs animate-slide-in">
+            <div className="flex items-center gap-2 font-display text-sm">
+              <Flash className="h-3.5 w-3.5 text-primary" />
+              {fav.name}
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+              {(
+                [
+                  ["Touches", favStats.touches],
+                  ["Pass %", favStats.passAcc],
+                  ["Rating", favStats.rating],
+                  ["Dist km", favStats.distance],
+                  ["Top km/h", favStats.topSpeed],
+                  ["Goals", favStats.goals],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k}>
+                  <div className="font-display text-sm">{v}</div>
+                  <div className="text-[9px] text-muted-foreground">{k}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Threshold-triggered player tag (speed / distance) */}
-      {tag && (
-        <div
-          key={tag.id}
-          className="absolute left-1/2 top-16 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
-        >
-          <Flash className="mr-1 inline h-3.5 w-3.5" />
-          {tag.text}
-        </div>
-      )}
-
-      {/* Player focus card */}
-      {prefs.mode === "player" && (
-        <div className="absolute right-4 top-4 w-52 rounded-xl glass p-3 text-xs animate-slide-in">
-          <div className="flex items-center gap-2 font-display text-sm">
-            <Flash className="h-3.5 w-3.5 text-primary" />
-            {fav.name}
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-            {(
-              [
-                ["Touches", favStats.touches],
-                ["Pass %", favStats.passAcc],
-                ["Rating", favStats.rating],
-                ["Dist km", favStats.distance],
-                ["Top km/h", favStats.topSpeed],
-                ["Goals", favStats.goals],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k}>
-                <div className="font-display text-sm">{v}</div>
-                <div className="text-[9px] text-muted-foreground">{k}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* On-air insight */}
-      {onAir && (
-        <div
-          key={onAir.title}
-          className="absolute bottom-3 left-3 right-48 max-w-xl rounded-xl glass p-3 animate-slide-in"
-        >
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <MagicStar variant="Bulk" className="h-3.5 w-3.5 text-primary" />
-            {onAir.ai ? `AI insight · ${prefs.lang}` : "Live insight"}
-            {onAir.verification && (
-              <>
-                <span>·</span>
-                <VerifiedBadge v={onAir.verification} />
-              </>
-            )}
-          </div>
-          <div className="mt-1 font-display text-base">{onAir.title}</div>
-          <p className="mt-1 text-sm text-muted-foreground">{onAir.text}</p>
-        </div>
-      )}
+      {/* Lower third: the on-air insight, docked under the pitch */}
+      <div className="flex min-h-19 shrink-0 items-center gap-4 border-t border-white/10 bg-background/85 px-4 py-2.5 backdrop-blur">
+        <LowerThird onAir={onAir} lang={prefs.lang} />
+        <PitchViewSwitch
+          view={view}
+          setView={setView}
+          heatTeam={heatTeam}
+          setHeatTeam={setHeatTeam}
+        />
+      </div>
     </section>
+  );
+}
+
+function LowerThird({ onAir, lang }: { onAir: OnAir | null; lang: string }) {
+  // After its broadcast time, the insight dims so the eye returns to the pitch.
+  const [fresh, setFresh] = useState(true);
+  useEffect(() => {
+    if (!onAir) return;
+    setFresh(true);
+    const t = setTimeout(() => setFresh(false), onAir.durationMs);
+    return () => clearTimeout(t);
+  }, [onAir?.title, onAir?.durationMs]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!onAir) {
+    return (
+      <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground">
+        <span className="h-1.5 w-1.5 rounded-full bg-live animate-live" />
+        Live analysis · waiting for the next big moment
+      </p>
+    );
+  }
+  return (
+    <div
+      key={onAir.title}
+      className={`flex min-w-0 flex-1 items-center gap-3 transition-opacity duration-700 animate-slide-in ${fresh ? "opacity-100" : "opacity-55"}`}
+    >
+      <span
+        aria-hidden
+        className={`w-1 self-stretch rounded-full ${onAir.team === "home" ? "bg-team-home" : "bg-team-away"}`}
+      />
+      <Crest team={onAir.team} size={30} />
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="rounded bg-foreground px-1.5 font-display text-xs font-semibold text-background">
+            {onAir.minute}'
+          </span>
+          <span className="truncate font-display text-sm">{onAir.label}</span>
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+            <MagicStar variant="Bulk" className="h-3.5 w-3.5 text-primary" />
+            {onAir.ai ? `AI · ${lang}` : "Live"}
+            {onAir.verification && <VerifiedBadge v={onAir.verification} />}
+          </span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
+          {onAir.text}
+        </p>
+      </div>
+    </div>
   );
 }

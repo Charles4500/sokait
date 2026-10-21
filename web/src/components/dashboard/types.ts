@@ -32,6 +32,11 @@ export interface OnAir {
   title: string;
   text: string;
   ai: boolean;
+  team: TeamId;
+  minute: number;
+  label: string;
+  /** How long a broadcast would keep this on screen. */
+  durationMs: number;
   verification?: Verification;
 }
 
