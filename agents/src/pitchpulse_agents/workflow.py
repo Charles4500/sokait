@@ -16,7 +16,8 @@ from typing import Any, Never
 
 from agent_framework import Agent, Executor, WorkflowBuilder, WorkflowContext, handler
 
-from .agents import make_analyst, make_narrator, make_recap_editor
+from .agents import make_analyst, make_match_qa, make_narrator, make_recap_editor
+from .ask import answer_question
 from .cache import TTLCache
 from .clients import make_chat_client, run_options
 from .facts import (
@@ -29,6 +30,8 @@ from .facts import (
 )
 from .memory import CircuitBreaker, MemoryStore
 from .models import (
+    Answer,
+    AskRequest,
     Insight,
     MomentRequest,
     NarrationOut,
@@ -445,6 +448,7 @@ class InsightsEngine:
         self.analyst = make_analyst(client or make_chat_client("analyst"))
         self.narrator = make_narrator(client or make_chat_client("narrator"))
         self.recap_editor = make_recap_editor(client or make_chat_client("recap"))
+        self.match_qa = make_match_qa(client or make_chat_client("qa"))
         self.memory = MemoryStore()
         self.breaker = CircuitBreaker()
         self.analyses: TTLCache[Analysis] = TTLCache()
@@ -501,4 +505,10 @@ class InsightsEngine:
         budget = max(self.budget_s * 4, 10.0)
         return await write_recap(
             req, self.recap_editor, self.memory, self.breaker, budget
+        )
+
+    async def ask(self, req: AskRequest) -> Answer:
+        # A listener is waiting for a spoken reply: keep it close to the live budget.
+        return await answer_question(
+            req, self.match_qa, self.memory, self.breaker, self.budget_s
         )

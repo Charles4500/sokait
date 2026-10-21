@@ -11,7 +11,7 @@ from fastapi import FastAPI, Header, HTTPException
 load_dotenv()
 
 from .clients import backend_name
-from .models import MomentRequest, Overlay, Recap, RecapRequest
+from .models import Answer, AskRequest, MomentRequest, Overlay, Recap, RecapRequest
 from .workflow import InsightsEngine
 
 app = FastAPI(title="PitchPulse agents", version="0.1.0")
@@ -53,3 +53,11 @@ async def recap(
 ) -> Recap:
     _authorise(authorization)
     return await engine.recap(req)
+
+
+@app.post("/ask", response_model=Answer)
+async def ask(
+    req: AskRequest, authorization: str | None = Header(default=None)
+) -> Answer:
+    _authorise(authorization)
+    return await engine.ask(req)

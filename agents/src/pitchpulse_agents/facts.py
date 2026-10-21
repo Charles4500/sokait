@@ -10,7 +10,7 @@ import re
 import unicodedata
 from typing import Any
 
-from .models import Evidence, MomentRequest, RecapRequest
+from .models import AskRequest, Evidence, MomentRequest, RecapRequest
 
 Facts = dict[str, float | str]
 
@@ -32,7 +32,8 @@ def _flatten(prefix: str, value: Any, out: Facts) -> None:
 
 
 # Engine bookkeeping, not football facts: agents never see these.
-INTERNAL_EVENT_FIELDS = {"id", "importance", "second", "label", "toX", "toY"}
+# Raw coordinates stay out too: agents describe position through `where` instead.
+INTERNAL_EVENT_FIELDS = {"id", "importance", "second", "label", "x", "y", "toX", "toY"}
 
 
 def public_event(event: dict) -> dict:
@@ -127,3 +128,21 @@ def check_names(text: str, event: dict) -> list[str]:
     if actor in text or actor.split()[-1] in text:
         return []
     return [f'name the player exactly as "{actor}" in Latin letters']
+
+
+def build_ask_facts(req: AskRequest, aired: list[dict]) -> Facts:
+    """Everything a spoken answer may quote: stats, score, extra context, aired numbers,
+    and numbers inside the recent event lines."""
+    facts: Facts = {}
+    _flatten("", req.stats, facts)
+    _flatten("score", req.score, facts)
+    _flatten("extra", req.extra, facts)
+    facts["minute"] = float(req.minute)
+    for i, line in enumerate(req.recent_events):
+        for j, n in enumerate(numbers_in(line)):
+            facts[f"recent.{i}.{j}"] = n
+    for i, a in enumerate(aired):
+        for j, ev in enumerate(a.get("evidence", [])):
+            if isinstance(ev.get("value"), (int, float)):
+                facts[f"aired.{i}.{j}"] = float(ev["value"])
+    return facts

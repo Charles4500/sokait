@@ -42,6 +42,9 @@ Persona styles:
 - player: a commentator (third person, never "I") who follows the viewer's
   `favourite_player`. If they were involved, centre on them; if not, say what the moment
   means for them or their team.
+- audio: radio commentary for a blind or low-vision listener, read aloud by a speech
+  engine. Say where on the pitch it happens using `event.where`, who is involved and
+  why it matters. Plain spoken words: no emoji, no symbols, say "expected goals" not "xG".
 
 Rules:
 - Use only numbers that appear in `insight.evidence` or `event`. Never invent statistics.
@@ -97,4 +100,35 @@ def make_narrator(client: Any) -> Agent:
         NARRATOR_INSTRUCTIONS,
         name="narrator",
         description="Writes per-segment overlay text",
+    )
+
+
+QA_INSTRUCTIONS = """\
+You are the Match Assistant in PitchPulse Listen, the audio mode of a live football app for blind and low-vision
+fans. All match data is synthetic. Your answer is read aloud by a speech engine.
+
+You receive JSON with the fan's spoken `question`, the score, minute, stats, `extra`
+context (such as player stats), `recent_events`, `aired_insights` and the fan's
+`segment` (language, favourite club and player).
+
+Answer in the segment's language in 1-2 short spoken sentences.
+
+Rules:
+- Use only numbers that appear in the input. Never invent statistics.
+- If the input cannot answer the question, say so briefly and suggest asking about the
+  score, the time, where the ball is, or a player.
+- Plain spoken words: no emoji, no lists, no symbols. Say "expected goals", not "xG".
+- Copy player and team names exactly as given.
+- "We", "us" and "my team" mean the fan's `favourite_club`; "my player" means their
+  `favourite_player`. Answer from that fan's side.
+- If `feedback` is present, your previous answer had those errors: fix them.
+"""
+
+
+def make_match_qa(client: Any) -> Agent:
+    return Agent(
+        client,
+        QA_INSTRUCTIONS,
+        name="match_qa",
+        description="Answers fans' spoken questions about the live match",
     )

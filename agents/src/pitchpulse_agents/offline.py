@@ -13,7 +13,7 @@ from typing import Any
 
 from agent_framework import BaseChatClient, ChatResponse, Message
 
-from .models import Insight, NarrationOut, RecapOut
+from .models import AskOut, Insight, NarrationOut, RecapOut
 from .recap import deterministic_recap
 
 
@@ -44,6 +44,8 @@ class OfflineChatClient(BaseChatClient):
             body = {"text": _narrate(payload)}
         elif fmt is RecapOut:
             body = deterministic_recap(payload)
+        elif fmt is AskOut:
+            body = {"answer": _answer(payload)}
         else:
             body = {"text": "ok"}
         return ChatResponse(messages=[Message("assistant", [json.dumps(body)])])
@@ -107,9 +109,23 @@ def _narrate(p: dict[str, Any]) -> str:
     actor = p["event"].get("player", "")
     if seg["persona"] == "analyst":
         return f"{actor}: {ins['claim']} {stat} {value}."
+    if seg["persona"] == "audio":
+        where = p["event"].get("where", "")
+        return (
+            f"{actor}, {where}. {ins['claim']}" if where else f"{actor}. {ins['claim']}"
+        )
     if seg["persona"] == "player":
         focus = seg.get("favourite_player") or actor
         if focus == actor:
             return f"Eyes on {focus}: {ins['claim'].lower()}"
         return f"Eyes on {focus} as {actor} acts: {ins['claim'].lower()}"
     return f"{actor}! {ins['claim']}"
+
+
+def _answer(p: dict[str, Any]) -> str:
+    home, away = p["teams"]["home"], p["teams"]["away"]
+    s = p["score"]
+    return (
+        f"It is {home['name']} {s['home']}, {away['name']} {s['away']}, "
+        f"in minute {p['minute']}."
+    )

@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-Persona = Literal["analyst", "casual", "player"]
+Persona = Literal["analyst", "casual", "player", "audio"]
 InsightCategory = Literal[
     "chance_quality",
     "control_vs_chaos",
@@ -103,6 +103,35 @@ class RecapRequest(BaseModel):
     segment: Segment
     key_moments: list[str] = Field(default=[], max_length=30)
     mvp: str | None = None
+
+
+class AskRequest(BaseModel):
+    """A fan's spoken question about the live match (PitchPulse Listen voice commands)."""
+
+    match_id: str
+    moment_id: str = Field(description='Latest "gen:seq"; selects the match memory')
+    minute: int
+    score: dict[str, int]
+    stats: dict[str, Any]
+    teams: dict[str, Team]
+    segment: Segment
+    question: str = Field(min_length=1, max_length=300)
+    recent_events: list[str] = Field(default=[], max_length=20)
+    extra: dict[str, Any] = Field(
+        default={}, description="More numeric context, e.g. per-player stats"
+    )
+
+
+class AskOut(BaseModel):
+    answer: str
+
+
+class Answer(BaseModel):
+    match_id: str
+    question: str
+    answer: str
+    verification: Verification
+    trace: list[TraceStep]
 
 
 class RecapOut(BaseModel):

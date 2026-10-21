@@ -39,3 +39,11 @@ def test_recap_endpoint():
     r = client.post("/recap", json=recap_request().model_dump())
     assert r.status_code == 200
     assert r.json()["verification"]["status"] in ("pass", "repaired")
+
+
+def test_ask_endpoint():
+    from .test_ask import ask_request
+
+    r = client.post("/ask", json=ask_request().model_dump())
+    assert r.status_code == 200
+    assert r.json()["answer"]
