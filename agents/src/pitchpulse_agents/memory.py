@@ -19,9 +19,14 @@ class AiredInsight:
 class MatchMemory:
     gen: str = ""
     aired: list[AiredInsight] = field(default_factory=list)
+    lines: list[str] = field(default_factory=list)  # recent narration, to vary openers
 
     def recent(self, n: int = 5) -> list[dict]:
         return [{"minute": a.minute, **a.insight.model_dump()} for a in self.aired[-n:]]
+
+    def said(self, text: str, keep: int = 6) -> None:
+        self.lines.append(text)
+        del self.lines[:-keep]
 
 
 class MemoryStore:

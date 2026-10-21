@@ -58,6 +58,7 @@ class Job:
     req: MomentRequest
     facts: Facts
     recent: list[dict]
+    recent_lines: list[str] = field(default_factory=list)
     trace: list[TraceStep] = field(default_factory=list)
 
 
@@ -119,7 +120,12 @@ class Producer(Executor):
     async def run(self, req: MomentRequest, ctx: WorkflowContext[Job | Done]) -> None:
         t = _Timer()
         mem = self.memory.get(req.match_id, req.moment_id)
-        job = Job(req=req, facts=build_facts(req), recent=mem.recent())
+        job = Job(
+            req=req,
+            facts=build_facts(req),
+            recent=mem.recent(),
+            recent_lines=mem.lines[-4:],
+        )
         actor = req.event.get("player")
         player_focus = any(
             s.persona == "player" and s.favourite_player == actor for s in req.segments
@@ -246,6 +252,7 @@ class NarratorExecutor(Executor):
             "event": public_event(a.job.req.event),
             "segment": seg.model_dump(),
             "teams": {k: v.model_dump() for k, v in a.job.req.teams.items()},
+            "recent_lines": a.job.recent_lines,
         }
         if feedback:
             payload["feedback"] = feedback
@@ -373,9 +380,12 @@ class Publisher(Executor):
     async def run(self, done: Done, ctx: WorkflowContext[Never, Overlay]) -> None:
         req = done.job.req
         overlay = assemble(req, done.job.trace, done.show, done.insight, done.drafts)
+        mem = self.memory.get(req.match_id, req.moment_id)
         for dr in (done.drafts or {}).values():
             if dr.text and not dr.issues:
                 self.cache.put(narration_key(req, dr.segment), dr)
+                if dr.segment.language == "English":
+                    mem.said(dr.text)
         if not overlay.fallback:
             self.breaker.success()
             if done.insight:

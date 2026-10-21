@@ -39,11 +39,28 @@ describe("spoken lines", () => {
     );
   });
 
-  it("announces goals with scorer, place and score", () => {
-    const goal = ev({ type: "goal", x: 96, y: 30 });
+  it("announces goals like a commentator, with team, place and score", () => {
+    const goal = ev({ id: 2, type: "goal", x: 96, y: 30 });
     expect(keyMomentLine(goal, { home: 2, away: 1 })).toBe(
-      "Goal for Thames Rovers! Nico Vargas scores in the box, centrally. It's Thames Rovers 2, Mersey Athletic 1.",
+      "It's in! Vargas! Thames Rovers, in the box, centrally. It's Thames Rovers 2, Mersey Athletic 1.",
     );
+  });
+
+  it("varies calls across moments but repeats them for the same moment", () => {
+    const calls = [1, 2, 3, 4].map((id) =>
+      keyMomentLine(ev({ id, type: "goal" }), { home: 1, away: 0 }),
+    );
+    expect(new Set(calls).size).toBe(4);
+    expect(keyMomentLine(ev({ id: 2, type: "goal" }), { home: 1, away: 0 })).toBe(calls[1]);
+  });
+
+  it("calls a big chance differently from a speculative shot", () => {
+    expect(
+      keyMomentLine(ev({ id: 0, type: "shot", xg: 0.45, x: 95 }), { home: 0, away: 0 }),
+    ).toMatch(/^Oh, so close from Vargas!/);
+    expect(
+      keyMomentLine(ev({ id: 0, type: "shot", xg: 0.05, x: 80 }), { home: 0, away: 0 }),
+    ).toMatch(/^Vargas has a go/);
   });
 });
 

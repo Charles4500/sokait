@@ -55,13 +55,45 @@ export function shortLine(e: MatchEvent): string {
   }
 }
 
+// Real commentators' calls, picked by event id: varied, but the same moment always
+// sounds the same (replays, tests).
+const GOAL_CALLS = [
+  (n: string) => `GOAL! What a finish from ${n}!`,
+  (n: string) => `He's done it! ${n} scores!`,
+  (n: string) => `It's in! ${n}!`,
+  (n: string) => `GOAL! ${n}, and the place erupts!`,
+  (n: string) => `What a goal from ${n}!`,
+];
+const CHANCE_CALLS = [
+  (n: string) => `Oh, so close from ${n}!`,
+  (n: string) => `${n} shoots, and that was inches away!`,
+  (n: string) => `Big chance for ${n}!`,
+  (n: string) => `How has that stayed out? ${n}!`,
+];
+const SHOT_CALLS = [
+  (n: string) => `${n} has a go`,
+  (n: string) => `${n} tries his luck`,
+  (n: string) => `Shot from ${n}`,
+];
+const PASS_CALLS = [
+  (n: string) => `Lovely ball from ${n}`,
+  (n: string) => `What vision from ${n}`,
+  (n: string) => `${n} splits them open`,
+];
+const pick = <T>(bank: T[], id: number) => bank[id % bank.length]!;
+
 /** The line spoken first for a key moment, before AI narration arrives. */
 export function keyMomentLine(e: MatchEvent, score: Record<TeamId, number>): string {
   const at = where(e.team, e.x, e.y);
+  const name = surname(e.player.name);
   if (e.type === "goal") {
-    return `Goal for ${TEAMS[e.team].name}! ${e.player.name} scores ${at}. It's ${scoreLine(score)}.`;
+    return `${pick(GOAL_CALLS, e.id)(name)} ${TEAMS[e.team].name}, ${at}. It's ${scoreLine(score)}.`;
   }
-  if (e.type === "shot") return `Chance! ${e.player.name} shoots ${at}.`;
+  if (e.type === "shot") {
+    const call = (e.xg ?? 0) >= 0.3 ? pick(CHANCE_CALLS, e.id) : pick(SHOT_CALLS, e.id);
+    return `${call(name)}, ${at}.`;
+  }
+  if (e.type === "pass" && e.passAccurate) return `${pick(PASS_CALLS, e.id)(name)}, ${at}.`;
   return `${e.player.name}, ${at}.`;
 }
 

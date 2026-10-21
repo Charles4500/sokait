@@ -29,7 +29,7 @@ export function MatchVideo({
   onAir: OnAir | null;
 }) {
   return (
-    <section className="relative aspect-video max-h-[70vh] w-full overflow-hidden rounded-2xl [:fullscreen_&]:aspect-auto [:fullscreen_&]:max-h-none [:fullscreen_&]:flex-1">
+    <section className="relative aspect-video max-h-[70vh] w-full overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
       <TacticalPitch
         events={events}
         favPlayer={prefs.favPlayer}
