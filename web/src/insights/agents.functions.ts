@@ -4,7 +4,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export type Persona = "analyst" | "casual" | "player";
+export type Persona = "analyst" | "casual" | "player" | "audio";
 export interface Segment {
   persona: Persona;
   language: string;
@@ -40,6 +40,12 @@ export interface Overlay {
   fallback: boolean;
   trace: TraceStep[];
 }
+export interface Answer {
+  question: string;
+  answer: string;
+  verification: Verification;
+  trace: TraceStep[];
+}
 export interface Recap {
   headline: string;
   bullets: string[];
@@ -48,7 +54,7 @@ export interface Recap {
 }
 
 const SegmentIn = z.object({
-  persona: z.enum(["analyst", "casual", "player"]),
+  persona: z.enum(["analyst", "casual", "player", "audio"]),
   language: z.string().max(30),
   favourite_player: z.string().max(60).nullable(),
   favourite_club: z.string().max(60).nullable(),
@@ -73,6 +79,14 @@ const RecapIn = z.object({
   segment: SegmentIn,
   key_moments: z.array(z.string().max(120)).max(30),
   mvp: z.string().max(60).nullable(),
+});
+
+const AskIn = z.object({
+  ...Base,
+  segment: SegmentIn,
+  question: z.string().min(1).max(300),
+  recent_events: z.array(z.string().max(120)).max(20),
+  extra: z.record(z.string(), z.unknown()),
 });
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -108,3 +122,8 @@ export const analyseMoment = createServerFn({ method: "POST" })
 export const writeRecap = createServerFn({ method: "POST" })
   .inputValidator((d) => RecapIn.parse(d))
   .handler(({ data }) => callAgents<Recap>("/recap", data, 20000));
+
+/** A fan's spoken question, answered by the Match Q&A agent (PitchPulse Listen). */
+export const askMatch = createServerFn({ method: "POST" })
+  .inputValidator((d) => AskIn.parse(d))
+  .handler(({ data }) => callAgents<Answer>("/ask", data, 8000));

@@ -1,4 +1,6 @@
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Link } from "@tanstack/react-router";
+import { Headphones } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HowItWorksSheet } from "./how-it-works-sheet";
 import { PersonalisePopover } from "./personalise-popover";
 import { MODE_LABEL, MODES, type Prefs } from "./types";
@@ -34,6 +36,20 @@ export function DashboardHeader({
       </div>
       <TooltipProvider delayDuration={200}>
         <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to="/listen"
+                className="flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm hover:bg-secondary"
+              >
+                <Headphones className="h-4 w-4" aria-hidden />
+                Listen
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              Follow the match by sound: built for blind and low-vision fans
+            </TooltipContent>
+          </Tooltip>
           <HowItWorksSheet />
           <PersonalisePopover prefs={prefs} update={update} />
         </div>
