@@ -1,4 +1,4 @@
-import { CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
+import { Refresh, ShieldCross, TickCircle } from "iconsax-reactjs";
 import type { Overlay, TraceStep, Verification } from "@/insights/agents.functions";
 
 const AGENT_LABEL: Record<string, string> = {
@@ -23,7 +23,7 @@ export function VerifiedBadge({ v }: { v: Verification }) {
   if (v.status === "pass")
     return (
       <span className="inline-flex items-center gap-1 text-win" title="Every number checked">
-        <CheckCircle2 className="h-3 w-3" /> Verified
+        <TickCircle className="h-3 w-3" /> Verified
       </span>
     );
   if (v.status === "repaired")
@@ -32,7 +32,7 @@ export function VerifiedBadge({ v }: { v: Verification }) {
         className="inline-flex items-center gap-1 text-primary"
         title="Fact-Checker rejected a draft; the Narrator fixed it"
       >
-        <RefreshCw className="h-3 w-3" /> Repaired
+        <Refresh className="h-3 w-3" /> Repaired
       </span>
     );
   return (
@@ -40,7 +40,7 @@ export function VerifiedBadge({ v }: { v: Verification }) {
       className="inline-flex items-center gap-1 text-muted-foreground"
       title={v.issues.join("\n") || "Deterministic explanation kept on air"}
     >
-      <ShieldAlert className="h-3 w-3" /> Fallback
+      <ShieldCross className="h-3 w-3" /> Fallback
     </span>
   );
 }

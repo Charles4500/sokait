@@ -1,4 +1,4 @@
-import { Cpu, Info, Lightbulb, MonitorPlay, Radio, UserCog } from "lucide-react";
+import { Cpu, InfoCircle, LampCharge, Monitor, Radio, UserEdit } from "iconsax-reactjs";
 import {
   Sheet,
   SheetContent,
@@ -23,19 +23,19 @@ const STAGES = [
     how: "Pure code computes xG, pass accuracy and difficulty, ball and shot speed, pressing, control vs chaos, momentum and win probability on every event.",
   },
   {
-    I: Lightbulb,
+    I: LampCharge,
     n: "Explain",
     brief: "Explain why a moment matters",
     how: "A team of agents (Producer, Analyst, Narrator, Fact-Checker) picks the moments that matter and says why. Every number is checked against the match data before it airs.",
   },
   {
-    I: MonitorPlay,
+    I: Monitor,
     n: "Render",
     brief: "Render insight on screen alongside the match",
     how: "Timed overlays and player tags on the live view, plus a machine-readable SSE feed for broadcast graphics partners.",
   },
   {
-    I: UserCog,
+    I: UserEdit,
     n: "Personalise",
     brief: "Same intelligence, genuinely different experiences",
     how: "Casual fan, Analyst and Player focus modes, favourite club and player, six languages, voice commentary, and a side-by-side Analyst vs Fan view.",
@@ -51,7 +51,7 @@ export function HowItWorksSheet() {
             aria-label="How it works"
             className="grid h-10 w-10 place-items-center rounded-full border border-border data-[state=open]:bg-secondary"
           >
-            <Info className="h-4 w-4" />
+            <InfoCircle className="h-4 w-4" />
           </SheetTrigger>
         </TooltipTrigger>
         <TooltipContent>How it works</TooltipContent>

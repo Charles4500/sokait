@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ListenRouteImport } from './routes/listen'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiMatchControlRouteImport } from './routes/api/match/control'
 import { Route as ApiMatchStreamRouteImport } from './routes/api/match/stream'
@@ -19,11 +18,6 @@ import { Route as ApiPublicFeedRouteImport } from './routes/api/public/feed'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ListenRoute = ListenRouteImport.update({
-  id: '/listen',
-  path: '/listen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTtsRoute = ApiTtsRouteImport.update({
@@ -49,7 +43,6 @@ const ApiPublicFeedRoute = ApiPublicFeedRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/listen': typeof ListenRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/match/control': typeof ApiMatchControlRoute
   '/api/match/stream': typeof ApiMatchStreamRoute
@@ -57,7 +50,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/listen': typeof ListenRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/match/control': typeof ApiMatchControlRoute
   '/api/match/stream': typeof ApiMatchStreamRoute
@@ -66,7 +58,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/listen': typeof ListenRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/match/control': typeof ApiMatchControlRoute
   '/api/match/stream': typeof ApiMatchStreamRoute
@@ -76,7 +67,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/listen'
     | '/api/tts'
     | '/api/match/control'
     | '/api/match/stream'
@@ -84,7 +74,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/listen'
     | '/api/tts'
     | '/api/match/control'
     | '/api/match/stream'
@@ -92,7 +81,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/listen'
     | '/api/tts'
     | '/api/match/control'
     | '/api/match/stream'
@@ -101,7 +89,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ListenRoute: typeof ListenRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiMatchControlRoute: typeof ApiMatchControlRoute
   ApiMatchStreamRoute: typeof ApiMatchStreamRoute
@@ -115,13 +102,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/listen': {
-      id: '/listen'
-      path: '/listen'
-      fullPath: '/listen'
-      preLoaderRoute: typeof ListenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/tts': {
@@ -157,7 +137,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ListenRoute: ListenRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiMatchControlRoute: ApiMatchControlRoute,
   ApiMatchStreamRoute: ApiMatchStreamRoute,

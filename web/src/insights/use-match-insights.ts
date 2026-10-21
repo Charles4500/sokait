@@ -65,6 +65,8 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
   const seenLen = useRef(0);
   const seenGen = useRef(gen);
   const lastAi = useRef(0);
+  // Verified AI text by event id, so jumping around the timeline never loses it.
+  const aiById = useRef(new Map<number, Pick<FeedItem, "ai" | "verification">>());
 
   useEffect(() => {
     if (seenGen.current !== gen) {
@@ -76,21 +78,27 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
       setRecapStatus(null);
       setLastAgents(null);
       setDual(null);
+      aiById.current.clear();
     }
     const added = state.events.length - seenLen.current;
     seenLen.current = state.events.length;
-    if (added <= 0) return;
-    if (added > 1) {
-      // Catch-up batch (joined mid-match or reconnected): rebuild the key-moment
-      // list from deterministic explanations, without AI or on-air overlays.
+    if (added === 0) return;
+    if (added !== 1) {
+      // A jump: joined mid-match, reconnected, or the viewer moved along the timeline.
+      // Rebuild the key moments up to this point, keeping AI text we already have.
       const rebuilt = state.events
         .map((e, i) => ({ e, i }))
         .filter(({ e }) => isKeyMoment(e))
-        .map(({ e, i }) => ({ e, why: explain(e, computeStats(state.events.slice(0, i + 1))) }))
-        .reverse();
-      setFeed((f) =>
-        [...rebuilt, ...f.filter((x) => !rebuilt.some((r) => r.e.id === x.e.id))].slice(0, 30),
-      );
+        .map(({ e, i }) => ({
+          e,
+          why: explain(e, computeStats(state.events.slice(0, i + 1))),
+          ...aiById.current.get(e.id),
+        }))
+        .reverse()
+        .slice(0, 30);
+      setFeed(rebuilt);
+      setOnAir(null);
+      setTag(null);
       return;
     }
     const e = state.events[state.events.length - 1];
@@ -157,6 +165,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
           );
         if (mine.verification.status === "fallback") return;
         if (voiceRef.current) speak(mine.text, lang).catch(() => {});
+        aiById.current.set(e.id, { ai: mine.text, verification: mine.verification });
         setFeed((f) =>
           f.map((x) =>
             x.e.id === e.id ? { ...x, ai: mine.text, verification: mine.verification } : x,

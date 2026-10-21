@@ -1,4 +1,4 @@
-import { Columns2, Languages, Settings, Volume2, VolumeX } from "lucide-react";
+import { LanguageSquare, RowVertical, Setting2, VolumeHigh, VolumeSlash } from "iconsax-reactjs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
@@ -30,7 +30,7 @@ export function PersonalisePopover({
             aria-label="Personalise"
             className="grid h-10 w-10 place-items-center rounded-full border border-border data-[state=open]:bg-secondary"
           >
-            <Settings className="h-4 w-4" />
+            <Setting2 className="h-4 w-4" />
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent>Personalise</TooltipContent>
@@ -45,7 +45,7 @@ export function PersonalisePopover({
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Languages className="h-3.5 w-3.5" />
+            <LanguageSquare className="h-3.5 w-3.5" />
             Language
           </div>
           <Select value={prefs.lang} onValueChange={(lang) => update({ lang })}>
@@ -92,9 +92,9 @@ export function PersonalisePopover({
           <label className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5">
               {prefs.voice ? (
-                <Volume2 className="h-3.5 w-3.5" />
+                <VolumeHigh className="h-3.5 w-3.5" />
               ) : (
-                <VolumeX className="h-3.5 w-3.5" />
+                <VolumeSlash className="h-3.5 w-3.5" />
               )}
               AI voice
             </span>
@@ -113,7 +113,7 @@ export function PersonalisePopover({
           )}
           <label className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5">
-              <Columns2 className="h-3.5 w-3.5" />
+              <RowVertical className="h-3.5 w-3.5" />
               Analyst vs Fan
             </span>
             <Switch checked={prefs.compare} onCheckedChange={(compare) => update({ compare })} />

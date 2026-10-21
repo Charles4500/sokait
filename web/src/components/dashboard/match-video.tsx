@@ -1,4 +1,4 @@
-import { Sparkles, Zap } from "lucide-react";
+import { Flash, MagicStar } from "iconsax-reactjs";
 import { VerifiedBadge } from "./agent-trace";
 import { TEAMS, type MatchEvent, type Player, type TeamId } from "@/match/engine";
 import type { MatchStatus } from "@/match/hub";
@@ -57,7 +57,7 @@ export function MatchVideo({
           key={tag.id}
           className="absolute left-1/2 top-16 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
         >
-          <Zap className="mr-1 inline h-3.5 w-3.5" />
+          <Flash className="mr-1 inline h-3.5 w-3.5" />
           {tag.text}
         </div>
       )}
@@ -66,7 +66,7 @@ export function MatchVideo({
       {prefs.mode === "player" && (
         <div className="absolute right-4 top-4 w-52 rounded-xl glass p-3 text-xs animate-slide-in">
           <div className="flex items-center gap-2 font-display text-sm">
-            <Zap className="h-3.5 w-3.5 text-primary" />
+            <Flash className="h-3.5 w-3.5 text-primary" />
             {fav.name}
           </div>
           <div className="mt-2 grid grid-cols-3 gap-2 text-center">
@@ -96,7 +96,7 @@ export function MatchVideo({
           className="absolute bottom-3 left-3 right-48 max-w-xl rounded-xl glass p-3 animate-slide-in"
         >
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <MagicStar variant="Bulk" className="h-3.5 w-3.5 text-primary" />
             {onAir.ai ? `AI insight · ${prefs.lang}` : "Live insight"}
             {onAir.verification && (
               <>

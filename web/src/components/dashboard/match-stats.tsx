@@ -1,4 +1,4 @@
-import { Activity, Gauge, Goal, TrendingUp } from "lucide-react";
+import { Activity, Gps, Speedometer, TrendUp } from "iconsax-reactjs";
 import { TEAMS, type Player } from "@/match/engine";
 import type { MatchStats as Stats } from "./types";
 
@@ -13,7 +13,7 @@ export function MatchStats({
   const tiles = [
     {
       t: "Shots",
-      I: Goal,
+      I: Gps,
       v: `${stats.shots.home + stats.shots.away}`,
       u: "Shots",
       s: `xG ${stats.xg.home} – ${stats.xg.away}`,
@@ -27,7 +27,7 @@ export function MatchStats({
     },
     {
       t: "Control vs Chaos",
-      I: TrendingUp,
+      I: TrendUp,
       v: `${stats.control}%`,
       u: "control",
       s: `${stats.chaos}% turnover rate`,
@@ -35,7 +35,7 @@ export function MatchStats({
     },
     {
       t: "Top Shot Speed",
-      I: Gauge,
+      I: Speedometer,
       v: `${stats.topShotSpeed}`,
       u: "km/h",
       s: `${stats.pressure.home + stats.pressure.away} press events`,

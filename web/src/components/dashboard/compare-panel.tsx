@@ -1,4 +1,4 @@
-import { Columns2 } from "lucide-react";
+import { RowVertical } from "iconsax-reactjs";
 import { TEAMS } from "@/match/engine";
 import type { Dual, MatchStats } from "./types";
 
@@ -7,7 +7,7 @@ export function ComparePanel({ dual, stats }: { dual: Dual | null; stats: MatchS
   return (
     <section className="rounded-2xl glass-strong p-4 animate-slide-in">
       <div className="flex items-center gap-2 text-sm">
-        <Columns2 className="h-4 w-4" />
+        <RowVertical className="h-4 w-4" />
         Same moment, two fans{" "}
         <span className="text-muted-foreground">
           · {dual?.title ?? "waiting for next key moment…"}

@@ -1,17 +1,19 @@
-import { Link } from "@tanstack/react-router";
-import { Headphones } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { ReactNode } from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { HowItWorksSheet } from "./how-it-works-sheet";
 import { PersonalisePopover } from "./personalise-popover";
 import { MODE_LABEL, MODES, type Prefs } from "./types";
 
-/** Brand · viewing mode · help and personalisation. */
+/** Brand · viewing mode · Listen, help and personalisation. */
 export function DashboardHeader({
   prefs,
   update,
+  listen,
 }: {
   prefs: Prefs;
   update: (patch: Partial<Prefs>) => void;
+  /** The Listen sheet trigger (audio mode). */
+  listen: ReactNode;
 }) {
   return (
     <header className="flex flex-wrap items-center gap-4 border-b border-border px-6 py-3">
@@ -36,20 +38,7 @@ export function DashboardHeader({
       </div>
       <TooltipProvider delayDuration={200}>
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to="/listen"
-                className="flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm hover:bg-secondary"
-              >
-                <Headphones className="h-4 w-4" aria-hidden />
-                Listen
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              Follow the match by sound: built for blind and low-vision fans
-            </TooltipContent>
-          </Tooltip>
+          {listen}
           <HowItWorksSheet />
           <PersonalisePopover prefs={prefs} update={update} />
         </div>

@@ -1,25 +1,29 @@
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { RotateLeft } from "iconsax-reactjs";
 import { TEAMS, type Player } from "@/match/engine";
 import type { MatchStatus } from "@/match/hub";
 import { MODE_LABEL, type Prefs } from "./types";
 
-/** Match title, live status, and producer controls for the shared match. */
+/** Match title, live or replay status, and a restart for the shared match.
+ *  (Pausing your own view lives on the timeline.) */
 export function MatchTitleBar({
+  isLive,
   status,
   minute,
   prefs,
   fav,
   control,
 }: {
+  isLive: boolean;
   status: MatchStatus;
   minute: number;
   prefs: Prefs;
   fav: Player;
   control: (action: "pause" | "resume" | "restart") => Promise<void>;
 }) {
-  const running = status === "live";
-  const label =
-    status === "finished"
+  const running = isLive && status === "live";
+  const label = !isLive
+    ? `Replay · ${minute}'`
+    : status === "finished"
       ? "Full time"
       : status === "paused"
         ? `Paused · ${minute}'`
@@ -42,23 +46,13 @@ export function MatchTitleBar({
           {prefs.mode === "player" && ` · ★ ${fav.name}`}
         </div>
       </div>
-      <div className="flex items-center gap-2 text-sm">
-        <button
-          onClick={() => control(running ? "pause" : "resume").catch(() => {})}
-          disabled={status === "finished"}
-          className="flex items-center gap-1.5 rounded-full bg-muted/40 px-4 py-2 hover:bg-secondary disabled:opacity-50"
-        >
-          {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          {running ? "Pause" : "Resume"}
-        </button>
-        <button
-          onClick={() => control("restart").catch(() => {})}
-          className="flex items-center gap-1.5 rounded-full bg-muted/40 px-4 py-2 hover:bg-secondary"
-        >
-          <RotateCcw className="h-4 w-4" />
-          Restart
-        </button>
-      </div>
+      <button
+        onClick={() => control("restart").catch(() => {})}
+        className="flex items-center gap-1.5 rounded-full bg-muted/40 px-4 py-2 text-sm hover:bg-secondary"
+      >
+        <RotateLeft className="h-4 w-4" />
+        Restart match
+      </button>
     </div>
   );
 }
