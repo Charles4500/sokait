@@ -15,6 +15,7 @@ import { FIXTURES, fixtureById } from "@/match/engine";
 import { FixtureContext, fixtureInfo } from "@/match/fixture-context";
 import { followedClubs, useFollow } from "@/match/follow";
 import { LivePlaylist } from "@/components/dashboard/live-now";
+import { MatchAssistant } from "@/components/dashboard/match-assistant";
 import { useMatchInsights } from "@/insights/use-match-insights";
 import { useMatchStream } from "@/match/use-match-stream";
 import { usePlayback } from "@/match/use-playback";
@@ -325,6 +326,21 @@ function Dashboard() {
           </div>
         </div>
       </div>
+      <MatchAssistant
+        voice={prefs.voice}
+        ctx={{
+          events: live.events,
+          score: live.score,
+          minute: Math.min(90, Math.floor(live.clock / 60)),
+          matchId,
+          gen,
+          info,
+          lang: prefs.lang,
+          persona: prefs.mode,
+          favClub: prefs.favClub,
+          favPlayer: prefs.favPlayer,
+        }}
+      />
     </FixtureContext.Provider>
   );
 }

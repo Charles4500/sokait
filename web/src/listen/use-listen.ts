@@ -3,7 +3,8 @@ import { computeStats, playerStats } from "@/match/engine";
 import { clubName, favSide, type FixtureInfo } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import type { MatchView } from "@/match/use-match-stream";
-import { analyseMoment, askMatch, type Segment } from "@/insights/agents.functions";
+import { analyseMoment, type Segment } from "@/insights/agents.functions";
+import { askAboutMatch } from "@/insights/ask-match";
 import { keyMomentLine, localAnswer, scoreLine, shortLine, where } from "./describe";
 import { SpatialPitch } from "./spatial-audio";
 import { Announcer, type Priority } from "./voice";
@@ -203,53 +204,23 @@ export function useListen(
     async (question: string) => {
       const p = prefsRef.current;
       say(question, "high", "you");
-      const local = localAnswer(question, {
+      setThinking(true);
+      const r = await askAboutMatch(question, {
         events: state.events,
         score: state.score,
         minute,
+        matchId,
+        gen,
+        info,
+        lang: p.lang,
+        persona: "audio",
+        favClub: p.favClub,
         favPlayer: p.favPlayer,
-        teams,
-        players,
       });
-      if (local) return say(local, "high", "answer");
-      setThinking(true);
-      const fav = players.find((x) => x.id === p.favPlayer);
-      const recent = state.events.slice(-60).filter((e) => e.importance >= 0.4);
-      const involved = new Set([fav?.id, ...recent.slice(-3).map((e) => e.player.id)]);
-      const statsByName = Object.fromEntries(
-        players
-          .filter((x) => involved.has(x.id))
-          .map((x) => [x.name, playerStats(state.events, x.id)]),
-      );
-      const r = await askMatch({
-        data: {
-          match_id: matchId,
-          moment_id: `${gen}:${state.events[state.events.length - 1]?.id ?? 0}`,
-          minute,
-          score: state.score,
-          stats: computeStats(state.events),
-          teams: { home: teams.home, away: teams.away },
-          segment: {
-            persona: "audio",
-            language: p.lang,
-            favourite_player: fav?.name ?? null,
-            favourite_club: clubName(p.favClub),
-          },
-          question,
-          recent_events: recent.slice(-10).map((e) => `${e.minute}' ${e.label}`),
-          extra: { players: statsByName },
-        },
-      }).catch(() => ({ ok: false as const, error: "unavailable" }));
       setThinking(false);
-      say(
-        r.ok
-          ? r.data.answer
-          : "Sorry, I can't answer that right now. Try asking for the score or where the ball is.",
-        "high",
-        "answer",
-      );
+      say(r.answer, "high", "answer");
     },
-    [say, state.events, state.score, minute, matchId, gen, teams, players],
+    [say, state.events, state.score, minute, matchId, gen, info],
   );
 
   const repeatScore = useCallback(
