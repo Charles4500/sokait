@@ -1,111 +1,111 @@
 # PitchPulse
 
-A multi-agent match insights engine. PitchPulse ingests synthetic football events live, computes explainable stats, and uses a team of Microsoft Agent Framework agents to choose the moments that matter, explain why, and narrate them for every fan: analyst or casual, any language, favourite club or player. A Fact-Checker agent grounds every line in computed evidence before it airs, and a deterministic fallback keeps the broadcast running if AI fails.
+**Live football intelligence that every fan can trust, see and hear.**
+
+PitchPulse turns a stream of synthetic match events into explainable, personalised match
+intelligence. A team of agents built on **Microsoft Agent Framework** decides which
+moments matter, explains why with evidence from the stats, and narrates them like a live
+commentator, for analysts, casual fans and player followers, in six languages. A
+Fact-Checker agent verifies every number before it airs, so nothing invented reaches the
+screen. And with **PitchPulse Listen**, blind and low-vision fans can follow the match
+through spatial audio and spoken commentary.
 
 All clubs, players and events are synthetic. No real league data is used.
 
-- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Build plan: [docs/PLAN.md](docs/PLAN.md)
-- Agent service: [agents/README.md](agents/README.md)
+> Demo video: _link added on submission_ · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Evaluation: [docs/EVAL.md](docs/EVAL.md)
+
+## What it does
+
+- **Live tactical view**: three matches play at once; a top-down pitch shows passes, shots,
+  pressing and goals as they happen, with shot map and heatmap views.
+- **Commentary that explains**: every key moment gets an instant deterministic
+  explanation, then verified AI commentary ("What a strike from Pike! That equaliser pulls
+  the game back into balance…") in a broadcast-style lower third.
+- **Personalised**: casual fan, analyst or player focus; English, Swahili, Spanish, French,
+  Arabic, Portuguese; favourite club and player; side-by-side Analyst vs Fan.
+- **Live timeline**: scrub back, replay from any goal, pause your own view, rejoin live,
+  switch matches from a Live now list. YouTube-style keyboard shortcuts (`?` lists them).
+- **PitchPulse Listen**: spatial ball audio, earcons, spoken AI commentary and voice
+  questions ("how is Mensah doing?"), with a screen-reader mode.
+- **Recaps and Q&A**: a Recap Editor agent writes match recaps; a Match Q&A agent answers
+  fans' questions. Both are fact-checked.
+- **Transparent**: every insight shows how it was made: which agents ran, how long they
+  took, the evidence used, and whether the text passed, was repaired or fell back.
+- **Partner feed**: a versioned, machine-readable overlay stream for broadcast graphics.
+
+## Why the agents are trustworthy
+
+| Mechanism                                                                 | What it guarantees                                                                                |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Analyst cites evidence by key from a facts table, checked before use      | Insights are grounded in computed stats                                                           |
+| Fact-Checker checks every number, the player's name and overlay length    | Invented numbers never air (28 of 28 injected hallucinations caught, see [EVAL.md](docs/EVAL.md)) |
+| One repair loop, then a deterministic fallback per audience               | Something correct is always on screen                                                             |
+| Shared cache: one analysis per moment, one narration per audience segment | Cost grows with segments, not viewers                                                             |
+| Model failover, token budget and circuit breaker                          | Survives rate limits and outages; AI is saved for the biggest moments when the budget is tight    |
 
 ## Repository layout
 
 ```
-web/                    TypeScript web app (TanStack Start, React, Tailwind)
-  src/match/            Synthetic match engine, shared match hub, pitch geometry
-  src/insights/         Calls to the agent service, key-moment logic, voice
-  src/components/       Dashboard sections and the few shadcn/ui primitives used
-  src/routes/           Pages and API routes (SSE match stream, partner feed)
-  src/test/             Vitest tests
+web/                    TypeScript web app (TanStack Start, React, Tailwind, shadcn/ui)
+  src/match/            Synthetic league and match engine, live match hub, pitch layout
+  src/insights/         Calls to the agent service, key-moment logic, speech
+  src/listen/           PitchPulse Listen: spatial audio, spoken commentary, voice Q&A
+  src/components/       Dashboard sections and shadcn/ui primitives
+  src/routes/           Page and API routes (SSE match streams, live list, feed, TTS)
+  scripts/              Export a match's key moments for the evaluation
 agents/                 Python agent service (Microsoft Agent Framework, FastAPI)
-  src/pitchpulse_agents/  Agents, workflow, fact-checking, memory, model clients
-  tests/                pytest tests (run offline, no model needed)
-voice/                  Spoken commentary service (Piper neural voices, GPL-3.0)
-docs/                   Architecture and build plan
-.github/workflows/      CI for both services
+  src/pitchpulse_agents/  Agents, workflow, Fact-Checker, memory, cache, budget, models
+  eval/                 Evaluation harness (live run and fault injection)
+voice/                  Speech service (Piper neural voices, GPL-3.0)
+docs/                   Architecture, evaluation, plan
+.github/workflows/      CI for all three services
 ```
-
-## How it fits together
-
-| Part          | Where                                  | What it does                                                                                              |
-| ------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Match engine  | `web/src/match/engine.ts`              | Seeded synthetic events and pure stats (xG, pass difficulty, pressure, control vs chaos, win probability) |
-| Match hub     | `web/src/match/hub.ts`, `/api/match/*` | One shared live match on the server, streamed over SSE; `?seed=N` for a private, reproducible replay      |
-| Agent service | `agents/` (Python)                     | Producer → Analyst → Narrator ⇄ Fact-Checker → Publisher, plus a Recap Editor                             |
-| Dashboard     | `web/src/routes/index.tsx`             | Live overlays, personalisation, agent trace, recaps                                                       |
-| Voice         | `voice/` (Python)                      | Natural speech in six languages for commentary and PitchPulse Listen                                      |
-| Partner feed  | `/api/public/feed`                     | Machine-readable overlay stream for broadcast graphics partners                                           |
 
 ## Run locally
 
-Web app (needs [Bun](https://bun.sh) or Node 22+):
+Needs [Bun](https://bun.sh) and [uv](https://docs.astral.sh/uv/).
 
 ```sh
-cd web
-bun install
-bun run dev            # http://localhost:8080
-```
-
-Agent service (needs [uv](https://docs.astral.sh/uv/)):
-
-```sh
-cd agents
-uv sync
+# 1. Agent service (port 8000). Without credentials it uses an offline, rule-based client.
+cd agents && uv sync && cp .env.example .env    # optional: add a free Groq key
 uv run uvicorn pitchpulse_agents.server:app --port 8000
+
+# 2. Voice service (port 8001), optional; see voice/README.md to download voices once
+cd voice && uv sync && uv run uvicorn pitchpulse_voice.server:app --port 8001
+
+# 3. Web app (port 8080)
+cd web && bun install && bun run dev
 ```
 
-Voice service, for spoken commentary (see [voice/README.md](voice/README.md) to download
-the voices once):
-
-```sh
-cd voice
-uv sync
-uv run uvicorn pitchpulse_voice.server:app --port 8001
-```
-
-Without any model credentials the agent service uses its offline, rule-based client, so the full pipeline runs with no cloud account. See [agents/README.md](agents/README.md) for Microsoft Foundry settings.
+Open http://localhost:8080. Press `?` for keyboard shortcuts, and **Listen** in the header
+for the audio mode. Microsoft Edge has natural browser voices; other browsers use the
+voice service.
 
 ## Configuration
 
-| Variable                                    | Used by | Purpose                                                       |
-| ------------------------------------------- | ------- | ------------------------------------------------------------- |
-| `AGENTS_URL`                                | web app | Agent service URL (default `http://localhost:8000`)           |
-| `AGENTS_TOKEN`                              | both    | Shared bearer token between web app and agent service         |
-| `VOICE_URL`, `VOICE_TOKEN`                  | web app | Voice service URL (default `http://localhost:8001`) and token |
-| `PRODUCER_TOKEN`                            | web app | Required to pause or restart the shared match                 |
-| `MATCH_SEED`, `MATCH_TICK_MS`               | web app | Seed and pace of the shared match                             |
-| `FOUNDRY_PROJECT_ENDPOINT`, `FOUNDRY_MODEL` | agents  | Microsoft Foundry model deployment                            |
+| Variable                                                 | Used by     | Purpose                                                                                       |
+| -------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`      | agents      | Any OpenAI-compatible provider (the demo uses Groq's free tier)                               |
+| `OPENAI_MODEL_<ROLE>`                                    | agents      | Per-agent model lists (`ANALYST`, `NARRATOR`, `QA`, `RECAP`); comma-separated lists fail over |
+| `FOUNDRY_PROJECT_ENDPOINT`, `FOUNDRY_MODEL`              | agents      | Microsoft Foundry model deployment                                                            |
+| `TOKENS_PER_MINUTE`, `TOKENS_PER_DAY`, `MOMENT_BUDGET_S` | agents      | Token budget and live time budget                                                             |
+| `AGENTS_URL`, `AGENTS_TOKEN`                             | web, agents | Agent service URL and shared token                                                            |
+| `VOICE_URL`, `VOICE_TOKEN`                               | web, voice  | Voice service URL and shared token                                                            |
+| `MATCH_TICK_MS`, `MATCH_RESTART_MS`, `PRODUCER_TOKEN`    | web         | Match pace, restart after full time, producer controls                                        |
 
-## PitchPulse Listen (audio mode)
-
-Open `/listen` on a phone with headphones. It is built for blind and low-vision fans:
-spatial sound places the ball around you (your club always attacks to your right),
-earcons mark passes, shots, tackles and goals, AI commentary explains key moments, and
-you can ask questions out loud. Common questions (score, time, where is the ball, how is
-a player doing) are answered on the device; open questions go to the Match Q&A agent.
-
-Speech comes from the voice service (natural Piper voices in all six languages), or from
-the browser when it has a natural voice of its own, such as Microsoft Edge. Screen-reader
-users can switch commentary to their own screen reader under Personalise.
-
-## Tests
+## Tests and evaluation
 
 ```sh
-cd web && bun run test        # web app
-cd agents && uv run pytest    # agent service
-cd voice && uv run pytest     # voice service
+cd web && bun run test               # match engine, hub, fixtures, Listen descriptions
+cd agents && uv run pytest           # workflow, Fact-Checker, cache, budget, failover, API
+cd voice && uv run pytest            # speech API
+cd agents && uv run python eval/run_eval.py   # writes docs/EVAL.md
 ```
 
-## Production build
-
-```sh
-cd web
-bun run build          # Node server in .output/server/index.mjs
-node .output/server/index.mjs
-```
+CI runs type checks, linting, formatting, tests and container builds for every service.
 
 ## Licence
 
-`web/` and `agents/` are released under the licence in [LICENSE](LICENSE). The voice
-service in `voice/` is GPL-3.0-or-later because it uses Piper; it runs as a separate
-service over HTTP.
+`web/` and `agents/` are released under the [MIT licence](LICENSE). `voice/` is
+GPL-3.0-or-later because it uses Piper; it runs as a separate service over HTTP. Player
+and club art is generated with DiceBear's CC0 styles.
