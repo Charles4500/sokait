@@ -1,15 +1,17 @@
 import { Activity, Gps, Speedometer, TrendUp } from "iconsax-reactjs";
 import { TEAMS, type Player } from "@/match/engine";
-import { PlayerAvatar } from "./avatars";
-import type { MatchStats as Stats } from "./types";
+import { PlayerCard } from "./player-card";
+import type { MatchStats as Stats, PlayerStats } from "./types";
 
 /** MVP and headline numbers, computed by the match engine (not AI). */
 export function MatchStats({
   stats,
   star,
+  starStats,
 }: {
   stats: Stats;
   star: { player: Player; score: number };
+  starStats: PlayerStats;
 }) {
   const tiles = [
     {
@@ -46,20 +48,8 @@ export function MatchStats({
 
   return (
     <section className="rounded-2xl glass-strong p-4">
-      <div className="grid gap-3 md:grid-cols-[240px_minmax(0,1fr)]">
-        <div className="relative min-h-32 overflow-hidden rounded-xl bg-muted/50 p-3">
-          <div className="text-xs">MVP of the match</div>
-          <div className="mt-5 font-display text-base">{star.player.name}</div>
-          <div className="text-[11px] text-muted-foreground">
-            {TEAMS[star.player.team].name} · #{star.player.num} {star.player.pos}
-          </div>
-          <div className="absolute right-3 top-3">
-            <PlayerAvatar player={star.player} size={56} />
-          </div>
-          <div className="absolute bottom-3 right-3 rounded-lg bg-secondary px-2 py-1 text-center text-[10px] text-muted-foreground">
-            Score<div className="font-display text-base text-foreground">{star.score}</div>
-          </div>
-        </div>
+      <div className="grid gap-3 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <PlayerCard player={star.player} stats={starStats} label="Player of the match" />
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border sm:grid-cols-4">
           {tiles.map(({ t, I, v, u, s, hl }) => (
             <div key={t} className="bg-glass-strong p-3">

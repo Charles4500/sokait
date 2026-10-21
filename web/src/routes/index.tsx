@@ -226,7 +226,7 @@ function Dashboard() {
               fav={m.fav}
               control={control}
             />
-            <MatchStats stats={m.stats} star={m.star} />
+            <MatchStats stats={m.stats} star={m.star} starStats={m.starStats} />
             {prefs.compare && <ComparePanel dual={m.dual} stats={m.stats} />}
             <div className="grid gap-4 md:grid-cols-2">
               <RecapPanel recap={m.recap} prefs={prefs} canRun={state.events.length > 0} />

@@ -35,6 +35,10 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
   // (b) INTERPRET
   const stats = useMemo(() => computeStats(state.events), [state.events]);
   const star = useMemo(() => mvp(state.events), [state.events]);
+  const starStats = useMemo(
+    () => playerStats(state.events, star.player.id),
+    [state.events, star.player.id],
+  );
   const fav = PLAYERS.find((p) => p.id === favPlayer)!;
   const favStats = useMemo(() => playerStats(state.events, favPlayer), [state.events, favPlayer]);
   const minute = Math.min(90, Math.floor(state.clock / 60));
@@ -216,6 +220,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
   return {
     stats,
     star,
+    starStats,
     fav,
     favStats,
     minute,

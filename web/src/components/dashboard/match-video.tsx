@@ -4,6 +4,7 @@ import { VerifiedBadge } from "./agent-trace";
 import { TEAMS, type MatchEvent, type Player, type TeamId } from "@/match/engine";
 import type { MatchStatus } from "@/match/hub";
 import { ClubBadge, PlayerAvatar } from "./avatars";
+import { PlayerPortrait } from "./player-card";
 import { PitchViewSwitch, TacticalPitch, type PitchView } from "./tactical-pitch";
 import type { OnAir, PlayerStats, Prefs } from "./types";
 
@@ -75,7 +76,7 @@ export function MatchVideo({
         {prefs.mode === "player" && (
           <div className="absolute right-4 top-4 w-52 rounded-xl glass p-3 text-xs animate-slide-in">
             <div className="flex items-center gap-2 font-display text-sm">
-              <PlayerAvatar player={fav} size={28} />
+              <PlayerPortrait player={fav} size={40} />
               {fav.name}
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
