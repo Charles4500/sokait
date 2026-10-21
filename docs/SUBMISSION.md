@@ -62,7 +62,7 @@ per audience segment, an ordered list of models per agent that fails over when o
 rate-limited, a token budget that saves AI for the biggest moments, and a circuit breaker.
 
 **Models:** the agents run on any OpenAI-compatible endpoint or **Microsoft Foundry**
-(`FOUNDRY_PROJECT_ENDPOINT`). The demo runs on Groq's free tier (gpt-oss-20b and 120b)
+(`FOUNDRY_PROJECT_ENDPOINT`). The demo runs on Groq's free tier (gpt-oss-20b and 120b, with Gemini as a backup)
 because the team has no Azure subscription. Speech uses Piper neural voices in a separate
 service; player portraits were generated once with FLUX.1-schnell. All three services ship
 as containers ready for Azure Container Apps.

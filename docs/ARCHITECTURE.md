@@ -62,7 +62,7 @@ flowchart LR
   DASH -->|/api/tts| TTS
   LISTEN -->|/api/tts| TTS
 
-  MODELS["Model router<br/>Groq gpt-oss-20b ⇄ 120b failover<br/>(Microsoft Foundry pluggable)"] -.-> Agents
+  MODELS["Model router<br/>Groq gpt-oss-20b ⇄ 120b ⇄ Gemini failover<br/>(Microsoft Foundry pluggable)"] -.-> Agents
 ```
 
 ## Agents

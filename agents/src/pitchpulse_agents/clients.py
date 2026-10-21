@@ -5,6 +5,9 @@
                        local model. OPENAI_MODEL_<ROLE> (ANALYST, NARRATOR, RECAP, QA) picks
                        models per agent: a comma-separated list fails over in order when a
                        model is rate-limited. OPENAI_REASONING_EFFORT tunes reasoning models.
+                       A "provider:model" entry uses <PROVIDER>_API_KEY / _BASE_URL instead,
+                       e.g. "gemini:gemini-2.5-flash" with GEMINI_API_KEY as a backup that
+                       has its own free quota. Entries without a key are skipped.
 3. Offline             nothing set: deterministic rule-based client, no network
 """
 
@@ -18,11 +21,17 @@ from typing import Any
 
 from agent_framework import BaseChatClient, ChatResponse, Message
 
+# Known OpenAI-compatible providers and their default endpoints ("openai": OPENAI_BASE_URL).
+PROVIDERS: dict[str, str | None] = {
+    "OPENAI": None,
+    "GEMINI": "https://generativelanguage.googleapis.com/v1beta/openai/",
+}
+
 
 def backend_name() -> str:
     if os.getenv("FOUNDRY_PROJECT_ENDPOINT"):
         return "foundry"
-    if os.getenv("OPENAI_API_KEY"):
+    if any(os.getenv(f"{p}_API_KEY") for p in PROVIDERS):
         return "openai-compatible"
     return "offline"
 
@@ -39,18 +48,27 @@ def make_chat_client(role: str | None = None) -> Any:
         from agent_framework.openai import OpenAIChatCompletionClient
         from openai import AsyncOpenAI
 
-        # No SDK-level retries: a rate-limited model should fail over at once, not wait
-        # out our live time budget.
-        sdk = AsyncOpenAI(
-            api_key=os.environ["OPENAI_API_KEY"],
-            base_url=os.getenv("OPENAI_BASE_URL"),
-            max_retries=0,
-        )
-        models = role_models(role)
+        sdks: dict[str, AsyncOpenAI] = {}
+
+        def sdk(provider: str) -> AsyncOpenAI:
+            # No SDK-level retries: a rate-limited model should fail over at once, not
+            # wait out our live time budget.
+            if provider not in sdks:
+                sdks[provider] = AsyncOpenAI(
+                    api_key=os.environ[f"{provider}_API_KEY"],
+                    base_url=os.getenv(f"{provider}_BASE_URL") or PROVIDERS[provider],
+                    max_retries=0,
+                )
+            return sdks[provider]
+
+        entries = available_models(role)
+        if not entries:
+            raise RuntimeError(f"no model with an API key for role {role!r}")
+        names = [f"{p.lower()}:{m}" if p != "OPENAI" else m for p, m in entries]
         clients = [
-            OpenAIChatCompletionClient(model=m, async_client=sdk) for m in models
+            OpenAIChatCompletionClient(model=m, async_client=sdk(p)) for p, m in entries
         ]
-        return clients[0] if len(clients) == 1 else FailoverChatClient(models, clients)
+        return clients[0] if len(clients) == 1 else FailoverChatClient(names, clients)
     from .offline import (
         OfflineChatClient,  # local: offline imports recap, which imports us
     )
@@ -64,6 +82,21 @@ def role_models(role: str | None) -> list[str]:
     return [m.strip() for m in raw.split(",") if m.strip()]
 
 
+def available_models(role: str | None) -> list[tuple[str, str]]:
+    """(provider, model) for each entry of the role's list whose provider has a key."""
+    out = []
+    for entry in role_models(role):
+        prefix, _, model = entry.partition(":")
+        provider = prefix.upper()
+        if (
+            not model or provider not in PROVIDERS
+        ):  # plain name, e.g. "openai/gpt-oss-20b"
+            provider, model = "OPENAI", entry
+        if os.getenv(f"{provider}_API_KEY"):
+            out.append((provider, model))
+    return out
+
+
 def rate_limit_wait(error: BaseException) -> float | None:
     """Seconds to rest a model if `error` is a rate limit (HTTP 429), else None."""
     chain: BaseException | None = error
@@ -73,6 +106,8 @@ def rate_limit_wait(error: BaseException) -> float | None:
             m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", text)
             if m:
                 return int(m.group(1) or 0) * 60 + float(m.group(2))
+            if m := re.search(r"retryDelay['\"]?:\s*['\"](\d+(?:\.\d+)?)s", text):
+                return float(m.group(1))  # Gemini
             return 60.0
         chain = chain.__cause__ or chain.__context__
     return None

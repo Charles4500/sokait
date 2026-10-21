@@ -3,7 +3,11 @@ import json
 import pytest
 from agent_framework import Agent, ChatResponse, Message
 
-from pitchpulse_agents.clients import FailoverChatClient, rate_limit_wait
+from pitchpulse_agents.clients import (
+    FailoverChatClient,
+    available_models,
+    rate_limit_wait,
+)
 from pitchpulse_agents.offline import OfflineChatClient
 
 
@@ -21,6 +25,22 @@ def test_wait_is_read_from_the_provider_message():
     assert rate_limit_wait(RateLimited(GROQ_429)) == pytest.approx(16 * 60 + 45.264)
     assert rate_limit_wait(RateLimited("slow down")) == 60.0
     assert rate_limit_wait(ValueError("bad request")) is None
+    gemini = "Error code: 429 - [{'error': {'details': [{'retryDelay': '37s'}]}}]"
+    assert rate_limit_wait(RateLimited(gemini)) == 37.0
+
+
+def test_backup_provider_joins_only_with_a_key(monkeypatch):
+    chain = "openai/gpt-oss-120b,gemini:gemini-2.5-flash"
+    monkeypatch.setenv("OPENAI_MODEL_QA", chain)
+    monkeypatch.setenv("OPENAI_API_KEY", "groq")
+    assert available_models("qa") == [("OPENAI", "openai/gpt-oss-120b")]
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini")
+    assert available_models("qa") == [
+        ("OPENAI", "openai/gpt-oss-120b"),
+        ("GEMINI", "gemini-2.5-flash"),
+    ]
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    assert available_models("qa") == [("GEMINI", "gemini-2.5-flash")]
 
 
 class Exhausted(OfflineChatClient):
