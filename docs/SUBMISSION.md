@@ -68,7 +68,7 @@ rate-limited, a token budget that saves AI for the biggest moments, and a circui
 (`FOUNDRY_PROJECT_ENDPOINT`). The demo runs on Groq's free tier (gpt-oss-20b and 120b, with Gemini as a backup)
 because the team has no Azure subscription. Speech uses Piper neural voices in a separate
 service; player portraits were generated once with FLUX.1-schnell. All three services ship
-as containers ready for Azure Container Apps.
+as containers, with a Bicep template that deploys them to Azure Container Apps.
 
 ## Evaluation
 
@@ -95,7 +95,7 @@ source: the ingest stage is an interface, so nothing downstream changes.
 
 - Microsoft Agent Framework (Python): agents, workflow, repair loop, structured output
 - Microsoft Foundry: supported model backend
-- Azure Container Apps: deployment target (Dockerfiles for every service)
+- Azure Container Apps: deployment target (Dockerfiles for every service, Bicep in `infra/`)
 
 ## Links
 
