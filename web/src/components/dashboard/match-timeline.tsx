@@ -1,4 +1,4 @@
-import { Pause, Play } from "iconsax-reactjs";
+import { Maximize4, Pause, Play } from "iconsax-reactjs";
 import { MATCH_LENGTH_S, type MatchEvent } from "@/match/engine";
 import { clockOf } from "@/match/use-playback";
 
@@ -19,6 +19,7 @@ export function MatchTimeline({
   onSeek,
   onToggle,
   onGoLive,
+  onFullscreen,
 }: {
   events: MatchEvent[];
   liveClock: number;
@@ -29,6 +30,7 @@ export function MatchTimeline({
   onSeek: (clock: number) => void;
   onToggle: () => void;
   onGoLive: () => void;
+  onFullscreen: () => void;
 }) {
   const markers = events.filter((e) => e.type === "goal" || e.importance >= 0.7);
   const behind = liveClock - viewClock;
@@ -105,6 +107,14 @@ export function MatchTimeline({
           {finished ? "Jump to end" : "Go live"}
         </button>
       )}
+      <button
+        onClick={onFullscreen}
+        aria-label="Full screen (F)"
+        title="Full screen (F)"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-secondary"
+      >
+        <Maximize4 className="h-4 w-4" />
+      </button>
     </div>
   );
 }

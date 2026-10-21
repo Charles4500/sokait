@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentTrace } from "@/components/dashboard/agent-trace";
 import { ComparePanel } from "@/components/dashboard/compare-panel";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -16,6 +16,10 @@ import { useMatchInsights } from "@/insights/use-match-insights";
 import { useMatchStream } from "@/match/use-match-stream";
 import { usePlayback } from "@/match/use-playback";
 import { MatchTimeline } from "@/components/dashboard/match-timeline";
+import { ShortcutsDialog } from "@/components/dashboard/shortcuts";
+import { useFlash, useShortcuts, type ShortcutAction } from "@/components/dashboard/use-shortcuts";
+import { MODE_LABEL, MODES } from "@/components/dashboard/types";
+import { speak } from "@/insights/speech";
 import { ListenSheet, type ListenSettings } from "@/listen/listen-sheet";
 import { useListen } from "@/listen/use-listen";
 
@@ -96,6 +100,64 @@ function Dashboard() {
   // (b)–(e) INTERPRET, EXPLAIN, RENDER, PERSONALISE.
   const m = useMatchInsights(state, gen, matchId, prefs);
 
+  // Keyboard shortcuts, YouTube-style, with a brief flash showing what happened.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const { flash, show } = useFlash();
+  const fmtDelta = (s: number) => `${s < 0 ? "−" : "+"}${Math.abs(s) / 60}:00`;
+  const run = useCallback(
+    (action: ShortcutAction) => {
+      const by = (delta: number) => {
+        playback.seek(Math.max(0, state.clock + delta));
+        show(fmtDelta(delta));
+      };
+      if (action.startsWith("jump")) {
+        const minute = Number(action.slice(4)) * 10;
+        playback.seek(minute * 60);
+        return show(`${minute}'`);
+      }
+      switch (action) {
+        case "fullscreen":
+          if (document.fullscreenElement) void document.exitFullscreen();
+          else void stageRef.current?.requestFullscreen();
+          return;
+        case "toggle":
+          playback.toggle();
+          return show(playback.playing ? "❚❚ Paused" : "▶ Playing");
+        case "back1":
+          return by(-60);
+        case "fwd1":
+          return by(60);
+        case "back5":
+          return by(-300);
+        case "fwd5":
+          return by(300);
+        case "start":
+          playback.seek(0);
+          return show("Kick-off");
+        case "live":
+          playback.goLive();
+          return show("● LIVE");
+        case "voice":
+          update({ voice: !prefs.voice });
+          if (!prefs.voice) void speak("Commentary on.", prefs.lang);
+          return show(prefs.voice ? "AI voice off" : "AI voice on");
+        case "compare":
+          update({ compare: !prefs.compare });
+          return show(prefs.compare ? "Compare off" : "Analyst vs Fan");
+        case "mode": {
+          const next = MODES[(MODES.indexOf(prefs.mode) + 1) % MODES.length]!;
+          update({ mode: next });
+          return show(MODE_LABEL[next]);
+        }
+        case "help":
+          return setHelpOpen(true);
+      }
+    },
+    [playback, state.clock, prefs, show],
+  );
+  useShortcuts(run);
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-360 overflow-hidden glass">
@@ -113,33 +175,49 @@ function Dashboard() {
               updateSettings={updateListen}
             />
           }
+          shortcuts={<ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />}
         />
 
         <div className="relative grid items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* PRIMARY: the match and what it means */}
           <main className="min-w-0 space-y-4">
-            <MatchVideo
-              events={state.events}
-              score={state.score}
-              minute={m.minute}
-              status={status}
-              prefs={prefs}
-              fav={m.fav}
-              favStats={m.favStats}
-              tag={m.tag}
-              onAir={m.onAir}
-            />
-            <MatchTimeline
-              events={live.events}
-              liveClock={playback.liveClock}
-              viewClock={state.clock}
-              isLive={playback.isLive}
-              playing={playback.playing}
-              finished={status === "finished"}
-              onSeek={playback.seek}
-              onToggle={playback.toggle}
-              onGoLive={playback.goLive}
-            />
+            <div
+              ref={stageRef}
+              className="relative space-y-3 [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:bg-background [&:fullscreen]:p-4"
+            >
+              <MatchVideo
+                events={state.events}
+                score={state.score}
+                minute={m.minute}
+                status={status}
+                prefs={prefs}
+                fav={m.fav}
+                favStats={m.favStats}
+                tag={m.tag}
+                onAir={m.onAir}
+              />
+              <MatchTimeline
+                events={live.events}
+                liveClock={playback.liveClock}
+                viewClock={state.clock}
+                isLive={playback.isLive}
+                playing={playback.playing}
+                finished={status === "finished"}
+                onSeek={playback.seek}
+                onToggle={playback.toggle}
+                onGoLive={playback.goLive}
+                onFullscreen={() => run("fullscreen")}
+              />
+              {flash && (
+                <div
+                  key={flash.id}
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/75 px-5 py-2.5 font-display text-lg backdrop-blur animate-slide-in"
+                >
+                  {flash.text}
+                </div>
+              )}
+            </div>
             <MatchTitleBar
               isLive={playback.isLive}
               status={status}

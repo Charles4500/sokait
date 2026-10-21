@@ -9,11 +9,14 @@ export function DashboardHeader({
   prefs,
   update,
   listen,
+  shortcuts,
 }: {
   prefs: Prefs;
   update: (patch: Partial<Prefs>) => void;
   /** The Listen sheet trigger (audio mode). */
   listen: ReactNode;
+  /** Keyboard shortcuts help. */
+  shortcuts: ReactNode;
 }) {
   return (
     <header className="flex flex-wrap items-center gap-4 border-b border-border px-6 py-3">
@@ -39,6 +42,7 @@ export function DashboardHeader({
       <TooltipProvider delayDuration={200}>
         <div className="flex items-center gap-2">
           {listen}
+          {shortcuts}
           <HowItWorksSheet />
           <PersonalisePopover prefs={prefs} update={update} />
         </div>
