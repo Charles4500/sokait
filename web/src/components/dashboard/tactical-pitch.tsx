@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { PITCH, PLAYERS, TEAMS, type MatchEvent, type TeamId } from "@/match/engine";
+import { PITCH, type MatchEvent, type TeamId } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import { playerPositions } from "@/match/pitch-layout";
 
 export type PitchView = "live" | "shots" | "heat";
@@ -117,7 +118,8 @@ function LiveLayer({
   playerFocus: boolean;
 }) {
   const current = events[events.length - 1];
-  const positions = useMemo(() => playerPositions(current), [current]);
+  const { players } = useFixture();
+  const positions = useMemo(() => playerPositions(current, players), [current, players]);
   const trail = events.slice(-7, -1);
   const favTrail = useMemo(
     () => (playerFocus ? events.filter((e) => e.player.id === favPlayer).slice(-8) : []),
@@ -156,7 +158,7 @@ function LiveLayer({
       {current && <EventGraphic key={current.id} e={current} />}
 
       {/* Players */}
-      {PLAYERS.map((p) => {
+      {players.map((p) => {
         const pos = positions.get(p.id)!;
         const isFav = p.id === favPlayer;
         const onBall = current?.player.id === p.id;
@@ -325,6 +327,7 @@ const BINS_X = 15;
 const BINS_Y = 10;
 
 function Heatmap({ events, team }: { events: MatchEvent[]; team: TeamId }) {
+  const { teams } = useFixture();
   const grid = useMemo(() => {
     const g = Array.from({ length: BINS_X * BINS_Y }, () => 0);
     for (const e of events) {
@@ -354,7 +357,7 @@ function Heatmap({ events, team }: { events: MatchEvent[]; team: TeamId }) {
         ) : null,
       )}
       <text x={L} y={-2.5} textAnchor="end" fontSize={2.2} fill="oklch(1 0 0 / 0.7)">
-        Where {TEAMS[team].name} had the ball · {TEAMS[team].short} attack{" "}
+        Where {teams[team].name} had the ball · {teams[team].short} attack{" "}
         {team === "home" ? "→" : "←"}
       </text>
     </g>
@@ -373,6 +376,7 @@ export function PitchViewSwitch({
   heatTeam: TeamId;
   setHeatTeam: (t: TeamId) => void;
 }) {
+  const { teams } = useFixture();
   return (
     <div className="flex shrink-0 items-center gap-2">
       {view === "heat" && (
@@ -384,7 +388,7 @@ export function PitchViewSwitch({
               aria-pressed={heatTeam === t}
               className={`rounded-full px-2.5 py-1 ${heatTeam === t ? "bg-secondary" : "text-muted-foreground"}`}
             >
-              {TEAMS[t].short}
+              {teams[t].short}
             </button>
           ))}
         </div>

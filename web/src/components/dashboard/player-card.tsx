@@ -2,7 +2,8 @@
 // ratings come from what the player has actually done in this (synthetic) match.
 import { createAvatar } from "@dicebear/core";
 import * as notionists from "@dicebear/notionists";
-import { TEAMS, type Player, type TeamId } from "@/match/engine";
+import type { Player, TeamId } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import { ClubBadge } from "./avatars";
 import type { PlayerStats } from "./types";
 
@@ -91,6 +92,7 @@ export function PlayerCard({
   label?: string;
 }) {
   const { overall, stats: rows } = cardRatings(stats);
+  const { teams } = useFixture();
   const surface =
     tone === "gold"
       ? "bg-[linear-gradient(150deg,#f7e59a_0%,#d9b443_45%,#8c6a12_100%)] text-[#2a1f00]"
@@ -121,7 +123,7 @@ export function PlayerCard({
           {player.name.split(" ").slice(-1)[0]}
         </span>
         <span className="text-[10px] opacity-75">
-          {TEAMS[player.team].short} · #{player.num}
+          {teams[player.team].short} · #{player.num}
         </span>
       </div>
       <dl className="relative grid shrink-0 grid-cols-2 content-center gap-x-2.5 gap-y-1 text-[11px]">

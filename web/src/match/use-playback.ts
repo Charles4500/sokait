@@ -20,16 +20,16 @@ function viewAt(events: MatchEvent[], count: number): MatchView {
  * many events the viewer has reached; null means following live. Replay plays forward
  * and rejoins live automatically when it catches up. Only this viewer is affected.
  */
-export function usePlayback(live: MatchView, gen: number) {
+export function usePlayback(live: MatchView, stream: string) {
   const [cursor, setCursor] = useState<number | null>(null);
   const [playing, setPlaying] = useState(true);
   const total = live.events.length;
 
-  // A restarted match starts live again.
+  // A restarted or newly chosen match starts live.
   useEffect(() => {
     setCursor(null);
     setPlaying(true);
-  }, [gen]);
+  }, [stream]);
 
   useEffect(() => {
     if (cursor === null || !playing) return;

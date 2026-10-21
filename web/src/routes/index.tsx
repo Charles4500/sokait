@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgentTrace } from "@/components/dashboard/agent-trace";
 import { ComparePanel } from "@/components/dashboard/compare-panel";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -11,7 +11,9 @@ import { MatchVideo } from "@/components/dashboard/match-video";
 import { RecapPanel } from "@/components/dashboard/recap-panel";
 import type { Prefs } from "@/components/dashboard/types";
 import { WinProbability } from "@/components/dashboard/win-probability";
-import { PLAYERS } from "@/match/engine";
+import { FIXTURES, fixtureById } from "@/match/engine";
+import { FixtureContext, fixtureInfo } from "@/match/fixture-context";
+import { LiveNow } from "@/components/dashboard/live-now";
 import { useMatchInsights } from "@/insights/use-match-insights";
 import { useMatchStream } from "@/match/use-match-stream";
 import { usePlayback } from "@/match/use-playback";
@@ -54,8 +56,8 @@ const LISTEN_KEY = "pitchpulse.listen.settings";
 const DEFAULT_PREFS: Prefs = {
   mode: "casual",
   lang: "English",
-  favClub: "home",
-  favPlayer: PLAYERS[4]!.id,
+  favClub: "thr",
+  favPlayer: "thr-10",
   voice: false,
   compare: false,
 };
@@ -64,8 +66,22 @@ function Dashboard() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const update = (patch: Partial<Prefs>) => setPrefs((p) => ({ ...p, ...patch }));
 
-  // (a) INGEST: the shared synthetic match, streamed from the server.
-  const { state: live, status, gen, matchId, control } = useMatchStream();
+  // Which of the matches playing right now this viewer is watching (?match= in the URL).
+  const [fixtureId, setFixtureId] = useState(FIXTURES[0]!.id);
+  useEffect(() => {
+    setFixtureId(fixtureById(new URLSearchParams(window.location.search).get("match")).id);
+  }, []);
+  const switchMatch = useCallback((id: string) => {
+    setFixtureId(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("match", id);
+    window.history.replaceState(null, "", url);
+  }, []);
+  const info = useMemo(() => fixtureInfo(fixtureById(fixtureId)), [fixtureId]);
+
+  // (a) INGEST: the chosen live match, streamed from the server.
+  const { state: live, status, gen, matchId, control } = useMatchStream(fixtureId);
+  const stream = `${matchId}#${gen}`;
   // Listen (audio mode) always follows live, whatever the timeline shows.
   const [listenSettings, setListenSettings] = useState<ListenSettings>(DEFAULT_LISTEN);
   useEffect(() => {
@@ -87,18 +103,25 @@ function Dashboard() {
       return next;
     });
   }, []);
-  const listen = useListen(live, status, gen, matchId, {
-    ...listenSettings,
-    lang: prefs.lang,
-    favClub: prefs.favClub,
-    favPlayer: prefs.favPlayer,
-  });
+  const listen = useListen(
+    live,
+    status,
+    gen,
+    matchId,
+    {
+      ...listenSettings,
+      lang: prefs.lang,
+      favClub: prefs.favClub,
+      favPlayer: prefs.favPlayer,
+    },
+    info,
+  );
 
   // What this viewer is watching: live, or a replay from earlier on the timeline.
-  const playback = usePlayback(live, gen);
+  const playback = usePlayback(live, stream);
   const state = playback.view;
   // (b)–(e) INTERPRET, EXPLAIN, RENDER, PERSONALISE.
-  const m = useMatchInsights(state, gen, matchId, prefs);
+  const m = useMatchInsights(state, gen, matchId, prefs, info);
 
   // Keyboard shortcuts, YouTube-style, with a brief flash showing what happened.
   const stageRef = useRef<HTMLDivElement>(null);
@@ -152,99 +175,110 @@ function Dashboard() {
         }
         case "help":
           return setHelpOpen(true);
+        case "nextMatch":
+        case "prevMatch": {
+          const i = FIXTURES.findIndex((f) => f.id === fixtureId);
+          const step = action === "nextMatch" ? 1 : FIXTURES.length - 1;
+          const next = FIXTURES[(i + step) % FIXTURES.length]!;
+          switchMatch(next.id);
+          return show(`${next.home.short} v ${next.away.short}`);
+        }
       }
     },
-    [playback, state.clock, prefs, show],
+    [playback, state.clock, prefs, show, fixtureId, switchMatch],
   );
   useShortcuts(run);
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-360 overflow-hidden glass">
-        <DashboardHeader
-          prefs={prefs}
-          update={update}
-          listen={
-            <ListenSheet
-              listen={listen}
-              score={live.score}
-              status={status}
-              prefs={prefs}
-              update={update}
-              settings={listenSettings}
-              updateSettings={updateListen}
-            />
-          }
-          shortcuts={<ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />}
-        />
-
-        <div className="relative grid items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          {/* PRIMARY: the match and what it means */}
-          <main className="min-w-0 space-y-4">
-            <div
-              ref={stageRef}
-              className="relative space-y-3 [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:bg-background [&:fullscreen]:p-4"
-            >
-              <MatchVideo
-                events={state.events}
-                score={state.score}
-                minute={m.minute}
+    <FixtureContext.Provider value={info}>
+      <div className="min-h-screen">
+        <div className="mx-auto max-w-360 overflow-hidden glass">
+          <DashboardHeader
+            prefs={prefs}
+            update={update}
+            listen={
+              <ListenSheet
+                listen={listen}
+                score={live.score}
                 status={status}
                 prefs={prefs}
-                fav={m.fav}
-                favStats={m.favStats}
-                tag={m.tag}
-                onAir={m.onAir}
+                update={update}
+                settings={listenSettings}
+                updateSettings={updateListen}
               />
-              <MatchTimeline
-                events={live.events}
-                liveClock={playback.liveClock}
-                viewClock={state.clock}
-                isLive={playback.isLive}
-                playing={playback.playing}
-                finished={status === "finished"}
-                onSeek={playback.seek}
-                onToggle={playback.toggle}
-                onGoLive={playback.goLive}
-                onFullscreen={() => run("fullscreen")}
-              />
-              {flash && (
-                <div
-                  key={flash.id}
-                  aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/75 px-5 py-2.5 font-display text-lg backdrop-blur animate-slide-in"
-                >
-                  {flash.text}
-                </div>
-              )}
-            </div>
-            <MatchTitleBar
-              isLive={playback.isLive}
-              status={status}
-              minute={m.minute}
-              prefs={prefs}
-              fav={m.fav}
-              control={control}
-            />
-            <MatchStats stats={m.stats} star={m.star} starStats={m.starStats} />
-            {prefs.compare && <ComparePanel dual={m.dual} stats={m.stats} />}
-            <div className="grid gap-4 md:grid-cols-2">
-              <RecapPanel recap={m.recap} prefs={prefs} canRun={state.events.length > 0} />
-              <section className="rounded-2xl glass-strong p-4">
-                <h2 className="mb-3 text-sm font-medium">How the last insight was made</h2>
-                <AgentTrace overlay={m.lastAgents} />
-              </section>
-            </div>
-          </main>
+            }
+            shortcuts={<ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />}
+          />
 
-          {/* SIDEBAR: live commentary beside the video, like a live chat */}
-          <aside className="space-y-4 lg:sticky lg:top-4">
-            <LiveCommentary feed={m.feed} />
-            <WinProbability winProb={m.stats.winProb} />
-            <MatchCentre events={state.events} stats={m.stats} />
-          </aside>
+          <div className="relative grid items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+            {/* PRIMARY: the match and what it means */}
+            <main className="min-w-0 space-y-4">
+              <div
+                ref={stageRef}
+                className="relative space-y-3 [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:bg-background [&:fullscreen]:p-4"
+              >
+                <MatchVideo
+                  events={state.events}
+                  score={state.score}
+                  minute={m.minute}
+                  status={status}
+                  prefs={prefs}
+                  fav={m.fav}
+                  favStats={m.favStats}
+                  tag={m.tag}
+                  onAir={m.onAir}
+                />
+                <MatchTimeline
+                  events={live.events}
+                  liveClock={playback.liveClock}
+                  viewClock={state.clock}
+                  isLive={playback.isLive}
+                  playing={playback.playing}
+                  finished={status === "finished"}
+                  onSeek={playback.seek}
+                  onToggle={playback.toggle}
+                  onGoLive={playback.goLive}
+                  onFullscreen={() => run("fullscreen")}
+                />
+                {flash && (
+                  <div
+                    key={flash.id}
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/75 px-5 py-2.5 font-display text-lg backdrop-blur animate-slide-in"
+                  >
+                    {flash.text}
+                  </div>
+                )}
+              </div>
+              <MatchTitleBar
+                isLive={playback.isLive}
+                status={status}
+                minute={m.minute}
+                prefs={prefs}
+                fav={m.fav}
+                control={control}
+              />
+              <LiveNow current={fixtureId} favClub={prefs.favClub} onSelect={switchMatch} />
+              <MatchStats stats={m.stats} star={m.star} starStats={m.starStats} />
+              {prefs.compare && <ComparePanel dual={m.dual} stats={m.stats} />}
+              <div className="grid gap-4 md:grid-cols-2">
+                <RecapPanel recap={m.recap} prefs={prefs} canRun={state.events.length > 0} />
+                <section className="rounded-2xl glass-strong p-4">
+                  <h2 className="mb-3 text-sm font-medium">How the last insight was made</h2>
+                  <AgentTrace overlay={m.lastAgents} />
+                </section>
+              </div>
+            </main>
+
+            {/* SIDEBAR: live commentary beside the video, like a live chat */}
+            <aside className="space-y-4 lg:sticky lg:top-4">
+              <LiveCommentary feed={m.feed} />
+              <WinProbability winProb={m.stats.winProb} />
+              <MatchCentre events={state.events} stats={m.stats} />
+            </aside>
+          </div>
         </div>
       </div>
-    </div>
+    </FixtureContext.Provider>
   );
 }

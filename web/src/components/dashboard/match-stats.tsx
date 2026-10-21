@@ -1,5 +1,5 @@
 import { Activity, Gps, Speedometer, TrendUp } from "iconsax-reactjs";
-import { TEAMS, type Player } from "@/match/engine";
+import type { Player } from "@/match/engine";
 import { PlayerCard } from "./player-card";
 import type { MatchStats as Stats, PlayerStats } from "./types";
 

@@ -1,5 +1,6 @@
 import { RotateLeft } from "iconsax-reactjs";
-import { TEAMS, type Player } from "@/match/engine";
+import type { Player } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import { MODE_LABEL, type Prefs } from "./types";
 
@@ -20,6 +21,7 @@ export function MatchTitleBar({
   fav: Player;
   control: (action: "pause" | "resume" | "restart") => Promise<void>;
 }) {
+  const { teams } = useFixture();
   const running = isLive && status === "live";
   const label = !isLive
     ? `Replay · ${minute}'`
@@ -33,7 +35,7 @@ export function MatchTitleBar({
     <div className="flex flex-wrap items-center justify-between gap-3 px-1">
       <div className="min-w-0">
         <h1 className="truncate font-display text-xl">
-          {TEAMS.home.name} vs {TEAMS.away.name}
+          {teams.home.name} vs {teams.away.name}
         </h1>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className={`flex items-center gap-1.5 ${running ? "text-live" : ""}`}>

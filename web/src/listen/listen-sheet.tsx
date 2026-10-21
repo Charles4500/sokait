@@ -26,7 +26,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LANGS, type Prefs } from "@/components/dashboard/types";
 import { VOICE_HELP } from "@/insights/speech";
-import { PLAYERS, TEAMS, type TeamId } from "@/match/engine";
+import { CLUBS, type TeamId } from "@/match/engine";
+import { favSide, useFixture } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import type { Detail, ListenPrefs, Spoken, useListen } from "./use-listen";
 import { listenOnce, listeningSupported } from "./voice";
@@ -58,6 +59,8 @@ export function ListenSheet({
   settings: ListenSettings;
   updateSettings: (patch: Partial<ListenSettings>) => void;
 }) {
+  const info = useFixture();
+  const { teams } = info;
   const [listening, setListening] = useState(false);
   const stopRef = useRef<(() => void) | null>(null);
   const [typed, setTyped] = useState("");
@@ -142,7 +145,7 @@ export function ListenSheet({
             className="flex items-center justify-between rounded-xl bg-muted/40 px-4 py-3"
           >
             <span className="font-display text-2xl font-semibold">
-              {TEAMS.home.short} {score.home} – {score.away} {TEAMS.away.short}
+              {teams.home.short} {score.home} – {score.away} {teams.away.short}
             </span>
             <span className="text-sm text-muted-foreground">{statusText}</span>
           </section>
@@ -156,7 +159,9 @@ export function ListenSheet({
                 Start listening
               </button>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                <li>{TEAMS[prefs.favClub].name} always attack to your right.</li>
+                <li>
+                  {teams[favSide(info, prefs.favClub) ?? "home"].name} always attack to your right.
+                </li>
                 <li>A soft tick follows the ball and speeds up near a goal.</li>
                 <li>Rising notes: your team wins the ball. Falling: the opponent.</li>
                 <li>A click is a pass, a whoosh a shot, a fanfare a goal.</li>
@@ -321,6 +326,7 @@ function ListenSettingsPanel({
   settings: ListenSettings;
   updateSettings: (patch: Partial<ListenSettings>) => void;
 }) {
+  const { teams, players } = useFixture();
   const field = "w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm";
   return (
     <details className="rounded-xl bg-muted/30 p-4">
@@ -343,10 +349,13 @@ function ListenSettingsPanel({
           <select
             className={field}
             value={prefs.favClub}
-            onChange={(e) => update({ favClub: e.target.value as TeamId })}
+            onChange={(e) => update({ favClub: e.target.value })}
           >
-            <option value="home">{TEAMS.home.name}</option>
-            <option value="away">{TEAMS.away.name}</option>
+            {CLUBS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block space-y-1">
@@ -356,11 +365,13 @@ function ListenSettingsPanel({
             value={prefs.favPlayer}
             onChange={(e) => update({ favPlayer: e.target.value })}
           >
-            {PLAYERS.filter((p) => p.pos !== "GK").map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({TEAMS[p.team].short})
-              </option>
-            ))}
+            {players
+              .filter((p) => p.pos !== "GK")
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({teams[p.team].short})
+                </option>
+              ))}
           </select>
         </label>
         <fieldset className="space-y-2">

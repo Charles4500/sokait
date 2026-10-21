@@ -1,9 +1,10 @@
 import { RowVertical } from "iconsax-reactjs";
-import { TEAMS } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import type { Dual, MatchStats } from "./types";
 
 /** Same moment narrated for an analyst and a casual fan, side by side. */
 export function ComparePanel({ dual, stats }: { dual: Dual | null; stats: MatchStats }) {
+  const { teams } = useFixture();
   return (
     <section className="rounded-2xl glass-strong p-4 animate-slide-in">
       <div className="flex items-center gap-2 text-sm">
@@ -32,7 +33,7 @@ export function ComparePanel({ dual, stats }: { dual: Dual | null; stats: MatchS
           <div className="text-[10px] uppercase tracking-wider text-win">Casual fan</div>
           <p className="mt-1 text-base">{dual?.casual ?? "—"}</p>
           <div className="mt-2 text-[11px] text-muted-foreground">
-            {TEAMS.home.short} {stats.winProb.home}% to win ·{" "}
+            {teams.home.short} {stats.winProb.home}% to win ·{" "}
             {stats.momentum > 2
               ? "🔥 on top"
               : stats.momentum < -2

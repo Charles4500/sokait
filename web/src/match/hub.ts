@@ -1,9 +1,12 @@
 // Server-side match sessions. One session = one live synthetic match that every
 // viewer and overlay partner shares. Import only from server route handlers.
 import {
+  FIXTURES,
+  fixtureById,
   initialState,
   nextEvent,
   MATCH_LENGTH_S,
+  type Fixture,
   type MatchEvent,
   type MatchState,
   type TeamId,
@@ -20,7 +23,14 @@ export type HubMessage =
       score: Record<TeamId, number>;
       event: MatchEvent;
     }
-  | { type: "status"; gen: number; status: MatchStatus; seed: number; matchId: string };
+  | {
+      type: "status";
+      gen: number;
+      status: MatchStatus;
+      seed: number;
+      matchId: string;
+      fixtureId: string;
+    };
 
 type Listener = (m: HubMessage) => void;
 
@@ -28,6 +38,10 @@ export const DEFAULT_MATCH_ID = "main";
 const DEFAULT_SEED = Number(process.env["MATCH_SEED"]) || 42;
 const TICK_MS = Number(process.env["MATCH_TICK_MS"]) || 1100;
 const MAX_SESSIONS = 20;
+/** Shared matches kick off again this long after full time, so something is always live. */
+const RESTART_AFTER_MS = Number(process.env["MATCH_RESTART_MS"] ?? 45000);
+/** Fixtures kick off at different times, like a real matchday (events already played). */
+const KICKOFF_STAGGER_EVENTS = 55;
 
 export class MatchSession {
   state: MatchState;
@@ -37,13 +51,17 @@ export class MatchSession {
   private log: Extract<HubMessage, { type: "event" }>[] = [];
   private listeners = new Set<Listener>();
   private timer: ReturnType<typeof setInterval> | null = null;
+  private restartTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Set for shared matches: kick off a new game this long after full time. */
+  autoRestartMs = 0;
 
   constructor(
     readonly id: string,
     private seed: number,
     private tickMs = TICK_MS,
+    readonly fixture: Fixture = FIXTURES[0]!,
   ) {
-    this.state = initialState(seed);
+    this.state = initialState(seed, fixture);
     this.startTimer();
   }
 
@@ -58,6 +76,7 @@ export class MatchSession {
       status: this.status,
       seed: this.seed,
       matchId: this.id,
+      fixtureId: this.fixture.id,
     };
   }
 
@@ -87,7 +106,16 @@ export class MatchSession {
     };
     this.log.push(msg);
     this.emit(msg);
-    if (this.state.clock >= MATCH_LENGTH_S) this.setStatus("finished");
+    if (this.state.clock >= MATCH_LENGTH_S) {
+      this.setStatus("finished");
+      if (this.autoRestartMs > 0)
+        this.restartTimer = setTimeout(() => this.restart(this.seed + 1), this.autoRestartMs);
+    }
+  }
+
+  /** Play `n` events instantly, e.g. so fixtures are at different minutes. */
+  fastForward(n: number) {
+    for (let i = 0; i < n && this.status === "live"; i++) this.tick();
   }
 
   pause() {
@@ -99,9 +127,11 @@ export class MatchSession {
   }
 
   restart(seed = this.seed) {
+    if (this.restartTimer) clearTimeout(this.restartTimer);
+    this.restartTimer = null;
     this.seed = seed;
     this.gen++;
-    this.state = initialState(seed);
+    this.state = initialState(seed, this.fixture);
     this.log = [];
     this.status = "live";
     this.emit(this.statusMessage());
@@ -109,6 +139,7 @@ export class MatchSession {
 
   dispose() {
     if (this.timer) clearInterval(this.timer);
+    if (this.restartTimer) clearTimeout(this.restartTimer);
     this.timer = null;
     this.listeners.clear();
   }
@@ -139,23 +170,36 @@ const g = globalThis as unknown as { __pitchpulseSessions?: Map<string, MatchSes
 const sessions = (g.__pitchpulseSessions ??= new Map());
 
 /**
- * The shared broadcast match, or a private replay when a seed is given
- * (`?seed=7` → session "seed-7"), so demos and evaluations are reproducible.
+ * A fixture's shared broadcast match (every fixture plays at the same time), or a
+ * private replay of it when a seed is given (`?seed=7` → session "main:seed-7"), so
+ * demos and evaluations are reproducible.
  */
-export function getSession(seed?: number): MatchSession {
-  const id = seed === undefined ? DEFAULT_MATCH_ID : `seed-${seed}`;
+export function getSession(seed?: number, fixtureId?: string | null): MatchSession {
+  const fixture = fixtureById(fixtureId);
+  const id = seed === undefined ? fixture.id : `${fixture.id}:seed-${seed}`;
   let s = sessions.get(id);
   if (!s) {
     if (sessions.size >= MAX_SESSIONS) evictOne();
-    s = new MatchSession(id, seed ?? DEFAULT_SEED);
+    const shared = fixture.id === DEFAULT_MATCH_ID ? DEFAULT_SEED : fixture.seed;
+    s = new MatchSession(id, seed ?? shared, TICK_MS, fixture);
+    if (seed === undefined) {
+      s.autoRestartMs = RESTART_AFTER_MS;
+      s.fastForward(FIXTURES.indexOf(fixture) * KICKOFF_STAGGER_EVENTS);
+    }
     sessions.set(id, s);
   }
   return s;
 }
 
+/** Every fixture's shared match, started if needed: the "Live now" list. */
+export function liveSessions(): MatchSession[] {
+  return FIXTURES.map((f) => getSession(undefined, f.id));
+}
+
 function evictOne() {
-  // Prefer finished replays, then the oldest replay. Never evict the main match.
-  const replays = [...sessions.values()].filter((s) => s.id !== DEFAULT_MATCH_ID);
+  // Prefer finished replays, then the oldest replay. Never evict a shared fixture.
+  const shared = new Set(FIXTURES.map((f) => f.id));
+  const replays = [...sessions.values()].filter((s) => !shared.has(s.id));
   const victim = replays.find((s) => s.status === "finished") ?? replays[0];
   if (!victim) return;
   victim.dispose();

@@ -36,34 +36,142 @@ export interface MatchEvent {
   toY: number;
 }
 
-export const TEAMS = {
-  home: { name: "Thames Rovers", short: "THR", color: "var(--team-home)" },
-  away: { name: "Mersey Athletic", short: "MER", color: "var(--team-away)" },
-} as const;
+/** A synthetic club and its matchday squad. */
+export interface Club {
+  id: string;
+  name: string;
+  short: string;
+  squad: [name: string, num: number, pos: string][];
+}
 
-const mk = (team: TeamId, list: [string, number, string][]): Player[] =>
-  list.map(([name, num, pos]) => ({ id: `${team}-${num}`, name, num, pos, team }));
-
-export const PLAYERS: Player[] = [
-  ...mk("home", [
-    ["Leo Marlowe", 1, "GK"],
-    ["Ade Okafor", 4, "CB"],
-    ["Tom Reyes", 5, "CB"],
-    ["Kai Brennan", 8, "CM"],
-    ["Nico Vargas", 10, "AM"],
-    ["Sami Hale", 7, "RW"],
-    ["Jonah Pike", 9, "ST"],
-  ]),
-  ...mk("away", [
-    ["Ivo Kranz", 1, "GK"],
-    ["Ollie Dunn", 3, "CB"],
-    ["Rafa Sol", 6, "DM"],
-    ["Max Ferro", 8, "CM"],
-    ["Eli Mensah", 11, "LW"],
-    ["Dario Lusk", 9, "ST"],
-    ["Theo Quinn", 14, "AM"],
-  ]),
+export const CLUBS: Club[] = [
+  {
+    id: "thr",
+    name: "Thames Rovers",
+    short: "THR",
+    squad: [
+      ["Leo Marlowe", 1, "GK"],
+      ["Ade Okafor", 4, "CB"],
+      ["Tom Reyes", 5, "CB"],
+      ["Kai Brennan", 8, "CM"],
+      ["Nico Vargas", 10, "AM"],
+      ["Sami Hale", 7, "RW"],
+      ["Jonah Pike", 9, "ST"],
+    ],
+  },
+  {
+    id: "mer",
+    name: "Mersey Athletic",
+    short: "MER",
+    squad: [
+      ["Ivo Kranz", 1, "GK"],
+      ["Ollie Dunn", 3, "CB"],
+      ["Rafa Sol", 6, "DM"],
+      ["Max Ferro", 8, "CM"],
+      ["Eli Mensah", 11, "LW"],
+      ["Dario Lusk", 9, "ST"],
+      ["Theo Quinn", 14, "AM"],
+    ],
+  },
+  {
+    id: "sev",
+    name: "Severn United",
+    short: "SEV",
+    squad: [
+      ["Bram Holt", 1, "GK"],
+      ["Kofi Mensa", 5, "CB"],
+      ["Luca Ferri", 4, "CB"],
+      ["Owen Price", 6, "DM"],
+      ["Rio Castell", 10, "AM"],
+      ["Yusuf Amara", 11, "LW"],
+      ["Finn Doyle", 9, "ST"],
+    ],
+  },
+  {
+    id: "pen",
+    name: "Pennine City",
+    short: "PEN",
+    squad: [
+      ["Mats Lund", 1, "GK"],
+      ["Joel Banks", 2, "RB"],
+      ["Idris Cole", 5, "CB"],
+      ["Arlo Grey", 8, "CM"],
+      ["Tiago Neves", 7, "RW"],
+      ["Sol Adeyemi", 10, "AM"],
+      ["Zane Archer", 9, "ST"],
+    ],
+  },
+  {
+    id: "avo",
+    name: "Avon Wanderers",
+    short: "AVO",
+    squad: [
+      ["Cal Fenwick", 1, "GK"],
+      ["Dev Okoro", 4, "CB"],
+      ["Rhys Moran", 3, "LB"],
+      ["Pablo Ruiz", 8, "CM"],
+      ["Kian Shaw", 10, "AM"],
+      ["Malik Diop", 7, "RW"],
+      ["Ezra Stone", 9, "ST"],
+    ],
+  },
+  {
+    id: "tyn",
+    name: "Tyne Harbour",
+    short: "TYN",
+    squad: [
+      ["Erik Dahl", 1, "GK"],
+      ["Noel Grant", 5, "CB"],
+      ["Sam Achebe", 6, "DM"],
+      ["Leon Hart", 8, "CM"],
+      ["Gio Romano", 11, "LW"],
+      ["Ravi Patel", 10, "AM"],
+      ["Beau Kerr", 9, "ST"],
+    ],
+  },
 ];
+
+const club = (id: string) => CLUBS.find((c) => c.id === id)!;
+
+/** A match between two clubs. Several fixtures play at the same time. */
+export interface Fixture {
+  id: string;
+  home: Club;
+  away: Club;
+  seed: number;
+}
+
+export const FIXTURES: Fixture[] = [
+  { id: "main", home: club("thr"), away: club("mer"), seed: 42 },
+  { id: "sev-pen", home: club("sev"), away: club("pen"), seed: 7 },
+  { id: "avo-tyn", home: club("avo"), away: club("tyn"), seed: 19 },
+];
+
+export const fixtureById = (id: string | null | undefined) =>
+  FIXTURES.find((f) => f.id === id) ?? FIXTURES[0]!;
+
+export type Teams = Record<TeamId, { id: string; name: string; short: string; color: string }>;
+
+export function teamsOf(f: Fixture): Teams {
+  return {
+    home: { id: f.home.id, name: f.home.name, short: f.home.short, color: "var(--team-home)" },
+    away: { id: f.away.id, name: f.away.name, short: f.away.short, color: "var(--team-away)" },
+  };
+}
+
+export function playersOf(f: Fixture): Player[] {
+  const side = (team: TeamId, c: Club) =>
+    c.squad.map(([name, num, pos]) => ({ id: `${c.id}-${num}`, name, num, pos, team }));
+  return [...side("home", f.home), ...side("away", f.away)];
+}
+
+/** The side a club plays on in this fixture, or null if it isn't playing in it. */
+export const sideOf = (f: Fixture, clubId: string): TeamId | null =>
+  f.home.id === clubId ? "home" : f.away.id === clubId ? "away" : null;
+
+// The default fixture, for tests and tools.
+export const TEAMS = teamsOf(FIXTURES[0]!);
+export const PLAYERS: Player[] = playersOf(FIXTURES[0]!);
 
 // Seeded PRNG (mulberry32). Its state lives in MatchState so nextEvent stays pure:
 // the same seed always replays the same match.
@@ -84,7 +192,8 @@ function makeRng(state: number) {
   };
 }
 
-const outfield = (t: TeamId) => PLAYERS.filter((p) => p.team === t && p.pos !== "GK");
+const outfield = (f: Fixture, t: TeamId) =>
+  playersOf(f).filter((p) => p.team === t && p.pos !== "GK");
 
 // ---------- Pitch geometry ----------
 export const PITCH = { length: 105, width: 68 } as const;
@@ -112,11 +221,12 @@ export interface MatchState {
   rng: number; // PRNG state after the last event
   seq: number; // last event id
   ball: { x: number; y: number };
+  fixture: Fixture;
 }
 
 export const MATCH_LENGTH_S = 90 * 60;
 
-export const initialState = (seed = 42): MatchState => ({
+export const initialState = (seed = 42, fixture: Fixture = FIXTURES[0]!): MatchState => ({
   clock: 0,
   possession: "home",
   score: { home: 0, away: 0 },
@@ -126,6 +236,7 @@ export const initialState = (seed = 42): MatchState => ({
   rng: seed >>> 0,
   seq: 0,
   ball: { ...CENTRE },
+  fixture,
 });
 
 export function nextEvent(s: MatchState): MatchState {
@@ -157,9 +268,9 @@ export function nextEvent(s: MatchState): MatchState {
   const score = { ...s.score };
 
   if (r < 0.5) {
-    const p = pick(outfield(team));
-    let t = pick(outfield(team));
-    if (t.id === p.id) t = pick(outfield(team));
+    const p = pick(outfield(s.fixture, team));
+    let t = pick(outfield(s.fixture, team));
+    if (t.id === p.id) t = pick(outfield(s.fixture, team));
     const from = startFor(team);
     const zone = zoneOf(team, from.x);
     const passDistance = Math.round(rand(5, 48));
@@ -196,7 +307,7 @@ export function nextEvent(s: MatchState): MatchState {
     };
   } else if (r < 0.66) {
     const def = opp(team);
-    const p = pick(outfield(def));
+    const p = pick(outfield(s.fixture, def));
     possession = def;
     const at = near(3);
     const zone = zoneOf(def, at.x);
@@ -215,7 +326,7 @@ export function nextEvent(s: MatchState): MatchState {
     };
   } else if (r < 0.8) {
     const def = opp(team);
-    const p = pick(outfield(def));
+    const p = pick(outfield(s.fixture, def));
     const at = near(4);
     ev = {
       ...base,
@@ -231,7 +342,9 @@ export function nextEvent(s: MatchState): MatchState {
       toY: s.ball.y,
     };
   } else if (r < 0.885) {
-    const p = pick(outfield(team).filter((x) => ["ST", "AM", "RW", "LW", "CM"].includes(x.pos)));
+    const p = pick(
+      outfield(s.fixture, team).filter((x) => ["ST", "AM", "RW", "LW", "CM"].includes(x.pos)),
+    );
     // Skewed like real shot maps: mostly low-quality chances, a few big ones (~0.2 mean).
     const xg = Math.round((0.02 + 0.55 * next() ** 2) * 100) / 100;
     const ballSpeed = Math.round(rand(70, 128));
@@ -265,7 +378,7 @@ export function nextEvent(s: MatchState): MatchState {
     };
   } else {
     team = next() < homeBias ? "home" : "away";
-    const p = pick(outfield(team));
+    const p = pick(outfield(s.fixture, team));
     possession = team;
     const at = startFor(team);
     ball = at;
@@ -276,7 +389,7 @@ export function nextEvent(s: MatchState): MatchState {
       team,
       player: p,
       importance: 0.2,
-      label: `${TEAMS[team].short} regain control`,
+      label: `${teamsOf(s.fixture)[team].short} regain control`,
       ...at,
       toX: at.x,
       toY: at.y,
@@ -293,6 +406,7 @@ export function nextEvent(s: MatchState): MatchState {
     rng: rngState(),
     seq: base.id,
     ball,
+    fixture: s.fixture,
     events: [...s.events, ev].slice(-400),
   };
 }
@@ -393,31 +507,35 @@ export function playerStats(events: MatchEvent[], id: string) {
   };
 }
 
-export function mvp(events: MatchEvent[]) {
+export function mvp(events: MatchEvent[], players: Player[] = PLAYERS) {
   const scores = new Map<string, number>();
   events.forEach((e) =>
     scores.set(e.player.id, (scores.get(e.player.id) || 0) + 0.3 + e.importance * 2),
   );
-  let best: Player = PLAYERS[4]!,
+  let best: Player = players[4]!,
     v = -1;
   scores.forEach((s, id) => {
     if (s > v) {
       v = s;
-      best = PLAYERS.find((p) => p.id === id) ?? best;
+      best = players.find((p) => p.id === id) ?? best;
     }
   });
   return { player: best, score: Math.min(99, Math.round(50 + v)) };
 }
 
 // Deterministic explanation used instantly (AI enriches on top).
-export function explain(e: MatchEvent, stats: ReturnType<typeof computeStats>): string {
-  const side = TEAMS[e.team].name;
+export function explain(
+  e: MatchEvent,
+  stats: ReturnType<typeof computeStats>,
+  teams: Teams = TEAMS,
+): string {
+  const side = teams[e.team].name;
   if (e.type === "goal")
     return `${side} convert a ${e.xg} xG chance — ${e.xg! < 0.15 ? "a low-probability strike that flips the expected story" : "the reward for sustained territorial pressure"}.`;
   if (e.type === "shot" && e.xg! > 0.3)
     return `High-value chance (${e.xg} xG). ${side} are breaking lines in the final third.`;
   if (e.type === "tackle" && e.zone === "def")
-    return `Last-line intervention — without it ${TEAMS[e.team === "home" ? "away" : "home"].short} had a clear run on goal.`;
+    return `Last-line intervention — without it ${teams[e.team === "home" ? "away" : "home"].short} had a clear run on goal.`;
   if (e.type === "pass" && (e.passDifficulty || 0) > 7)
     return `Difficulty ${e.passDifficulty}/10 pass — elite vision that bypasses the press.`;
   if (stats.chaos > 45)

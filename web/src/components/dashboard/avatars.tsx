@@ -3,7 +3,8 @@
 import { createAvatar } from "@dicebear/core";
 import * as notionists from "@dicebear/notionists";
 import * as shapes from "@dicebear/shapes";
-import { TEAMS, type Player, type TeamId } from "@/match/engine";
+import type { Player, TeamId } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 
 // Close to the --team-home / --team-away theme colours.
 const TEAM_HEX: Record<TeamId, string> = { home: "e5484d", away: "2f8fdf" };
@@ -24,11 +25,22 @@ function dataUri(key: string, make: () => string): string {
   return uri;
 }
 
-/** A club badge: abstract shapes in the club's colour. */
-export function ClubBadge({ team, size = 28 }: { team: TeamId; size?: number }) {
-  const src = dataUri(`club:${team}`, () =>
+/** A club badge: shapes unique to the club, in its side's colours for this match.
+ *  `clubId` overrides the club (e.g. for other fixtures in the Live now list). */
+export function ClubBadge({
+  team,
+  clubId,
+  size = 28,
+}: {
+  team: TeamId;
+  clubId?: string;
+  size?: number;
+}) {
+  const { teams } = useFixture();
+  const club = clubId ?? teams[team].id;
+  const src = dataUri(`club:${club}:${team}`, () =>
     createAvatar(shapes, {
-      seed: TEAMS[team].name,
+      seed: club,
       backgroundColor: [TEAM_HEX[team]],
       shape1Color: [TEAM_SHAPES[team][0]!],
       shape2Color: [TEAM_SHAPES[team][1]!],

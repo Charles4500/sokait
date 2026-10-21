@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PLAYERS, TEAMS, computeStats, playerStats, type TeamId } from "@/match/engine";
+import { computeStats, playerStats } from "@/match/engine";
+import { clubName, favSide, type FixtureInfo } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import type { MatchView } from "@/match/use-match-stream";
 import { analyseMoment, askMatch, type Segment } from "@/insights/agents.functions";
@@ -11,7 +12,8 @@ export type Detail = "goals" | "key" | "every";
 
 export interface ListenPrefs {
   lang: string;
-  favClub: TeamId;
+  /** Club id; if it isn't in this match, the home side attacks to the right. */
+  favClub: string;
   favPlayer: string;
   detail: Detail;
   rate: number;
@@ -40,7 +42,10 @@ export function useListen(
   gen: number,
   matchId: string,
   prefs: ListenPrefs,
+  info: FixtureInfo,
 ) {
+  const { teams, players } = info;
+  const side = favSide(info, prefs.favClub) ?? "home";
   const audio = useRef<SpatialPitch | null>(null);
   const announcer = useRef<Announcer | null>(null);
   const [started, setStarted] = useState(false);
@@ -70,9 +75,9 @@ export function useListen(
       a.rate = prefs.rate;
       a.screenReader = prefs.screenReader;
     }
-    audio.current?.setFavClub(prefs.favClub);
+    audio.current?.setFavClub(side);
     audio.current?.setBallSound(prefs.ballSound);
-  }, [prefs]);
+  }, [prefs, side]);
 
   const start = useCallback(async () => {
     audio.current ??= new SpatialPitch();
@@ -84,14 +89,14 @@ export function useListen(
       rate: p.rate,
       screenReader: p.screenReader,
     });
-    await audio.current.start(p.favClub);
+    await audio.current.start(side);
     audio.current.setBallSound(p.ballSound);
     setStarted(true);
     say(
-      `Listening. ${TEAMS[p.favClub].name} attack to your right. It's ${scoreLine(state.score)}, minute ${minute}.`,
+      `Listening to ${teams.home.name} against ${teams.away.name}. ${teams[side].name} attack to your right. It's ${scoreLine(state.score, teams)}, minute ${minute}.`,
       "high",
     );
-  }, [say, state.score, minute]);
+  }, [say, state.score, minute, teams, side]);
 
   const stop = useCallback(() => {
     audio.current?.stop();
@@ -103,15 +108,23 @@ export function useListen(
 
   // ---- match events → sound and speech ----
   const seen = useRef(0);
-  const seenGen = useRef(gen);
+  const stream = `${matchId}#${gen}`;
+  const seenGen = useRef(stream);
   const lastAi = useRef(0);
   const lastGoalAt = useRef(0);
 
   useEffect(() => {
-    if (seenGen.current !== gen) {
-      seenGen.current = gen;
+    if (seenGen.current !== stream) {
+      const switched = !seenGen.current.startsWith(`${matchId}#`);
+      seenGen.current = stream;
       seen.current = 0;
-      if (started) say("The match has restarted.", "high");
+      if (started)
+        say(
+          switched
+            ? `Now listening to ${teams.home.name} against ${teams.away.name}.`
+            : "The match has restarted.",
+          "high",
+        );
     }
     const added = state.events.length - seen.current;
     seen.current = state.events.length;
@@ -129,10 +142,10 @@ export function useListen(
 
     if (p.detail === "goals" && !isGoal) return;
     if (!isKey && !isGoal) {
-      if (p.detail === "every") say(shortLine(e), "low");
+      if (p.detail === "every") say(shortLine(e, teams), "low");
       return;
     }
-    say(keyMomentLine(e, state.score), isGoal ? "high" : "normal");
+    say(keyMomentLine(e, state.score, teams), isGoal ? "high" : "normal");
 
     // Verified AI narration explains why it matters (audio persona: says where).
     if (Date.now() - lastAi.current < AI_COOLDOWN_MS) return;
@@ -141,8 +154,8 @@ export function useListen(
     const segment: Segment = {
       persona: "audio",
       language: p.lang,
-      favourite_player: PLAYERS.find((x) => x.id === p.favPlayer)?.name ?? null,
-      favourite_club: TEAMS[p.favClub].name,
+      favourite_player: players.find((x) => x.id === p.favPlayer)?.name ?? null,
+      favourite_club: clubName(p.favClub),
     };
     analyseMoment({
       data: {
@@ -157,9 +170,9 @@ export function useListen(
         },
         score: state.score,
         stats: computeStats(state.events),
-        teams: { home: TEAMS.home, away: TEAMS.away },
+        teams: { home: teams.home, away: teams.away },
         segments: [segment],
-        fallback_text: keyMomentLine(e, state.score),
+        fallback_text: keyMomentLine(e, state.score, teams),
       },
     })
       .then((r) => {
@@ -172,17 +185,17 @@ export function useListen(
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.events.length, gen, started]);
+  }, [state.events.length, stream, started]);
 
   // Status changes are always announced.
   const lastStatus = useRef(status);
   useEffect(() => {
     if (!started || lastStatus.current === status) return;
     lastStatus.current = status;
-    if (status === "finished") say(`Full time. ${scoreLine(state.score)}.`, "high");
+    if (status === "finished") say(`Full time. ${scoreLine(state.score, teams)}.`, "high");
     if (status === "paused") say("The match is paused.", "high");
     if (status === "live") say("Play resumes.", "normal");
-  }, [status, started, say, state.score]);
+  }, [status, started, say, state.score, teams]);
 
   // ---- questions ----
   const [thinking, setThinking] = useState(false);
@@ -195,17 +208,18 @@ export function useListen(
         score: state.score,
         minute,
         favPlayer: p.favPlayer,
+        teams,
+        players,
       });
       if (local) return say(local, "high", "answer");
       setThinking(true);
-      const fav = PLAYERS.find((x) => x.id === p.favPlayer);
+      const fav = players.find((x) => x.id === p.favPlayer);
       const recent = state.events.slice(-60).filter((e) => e.importance >= 0.4);
       const involved = new Set([fav?.id, ...recent.slice(-3).map((e) => e.player.id)]);
-      const players = Object.fromEntries(
-        PLAYERS.filter((x) => involved.has(x.id)).map((x) => [
-          x.name,
-          playerStats(state.events, x.id),
-        ]),
+      const statsByName = Object.fromEntries(
+        players
+          .filter((x) => involved.has(x.id))
+          .map((x) => [x.name, playerStats(state.events, x.id)]),
       );
       const r = await askMatch({
         data: {
@@ -214,16 +228,16 @@ export function useListen(
           minute,
           score: state.score,
           stats: computeStats(state.events),
-          teams: { home: TEAMS.home, away: TEAMS.away },
+          teams: { home: teams.home, away: teams.away },
           segment: {
             persona: "audio",
             language: p.lang,
             favourite_player: fav?.name ?? null,
-            favourite_club: TEAMS[p.favClub].name,
+            favourite_club: clubName(p.favClub),
           },
           question,
           recent_events: recent.slice(-10).map((e) => `${e.minute}' ${e.label}`),
-          extra: { players },
+          extra: { players: statsByName },
         },
       }).catch(() => ({ ok: false as const, error: "unavailable" }));
       setThinking(false);
@@ -235,23 +249,23 @@ export function useListen(
         "answer",
       );
     },
-    [say, state.events, state.score, minute, matchId, gen],
+    [say, state.events, state.score, minute, matchId, gen, teams, players],
   );
 
   const repeatScore = useCallback(
-    () => say(`It's ${scoreLine(state.score)}, minute ${minute}.`, "high", "answer"),
-    [say, state.score, minute],
+    () => say(`It's ${scoreLine(state.score, teams)}, minute ${minute}.`, "high", "answer"),
+    [say, state.score, minute, teams],
   );
   const repeatWhere = useCallback(() => {
     const last = state.events[state.events.length - 1];
     say(
       last
-        ? `${TEAMS[last.team].name} have it ${where(last.team, last.toX, last.toY)}.`
+        ? `${teams[last.team].name} have it ${where(last.team, last.toX, last.toY)}.`
         : "The match hasn't started yet.",
       "high",
       "answer",
     );
-  }, [say, state.events]);
+  }, [say, state.events, teams]);
 
   return {
     started,

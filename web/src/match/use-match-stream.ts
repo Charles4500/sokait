@@ -20,22 +20,25 @@ function append(v: MatchView, msgs: EventMsg[]): MatchView {
 }
 
 /**
- * Follows the server's live match over SSE (see /api/match/stream).
- * `?seed=N` in the page URL follows a private, reproducible replay instead.
- * `gen` changes whenever the match restarts.
+ * Follows one fixture's live match over SSE (see /api/match/stream). Switching
+ * `fixtureId` reconnects to that match. `?seed=N` in the page URL follows a private,
+ * reproducible replay instead. `gen` changes whenever the match restarts.
  */
-export function useMatchStream() {
+export function useMatchStream(fixtureId: string) {
   const [view, setView] = useState<MatchView>(EMPTY);
   const [status, setStatus] = useState<MatchStatus>("live");
   const [gen, setGen] = useState(0);
   const [connected, setConnected] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
-  const [matchId, setMatchId] = useState("main");
+  const [matchId, setMatchId] = useState(fixtureId);
 
   useEffect(() => {
     const s = new URLSearchParams(window.location.search).get("seed");
     setSeed(s);
-    const es = new EventSource(`/api/match/stream${s ? `?seed=${encodeURIComponent(s)}` : ""}`);
+    setView(EMPTY);
+    const q = new URLSearchParams({ match: fixtureId });
+    if (s) q.set("seed", s);
+    const es = new EventSource(`/api/match/stream?${q}`);
     let currentGen = 0;
 
     es.onopen = () => setConnected(true);
@@ -59,11 +62,14 @@ export function useMatchStream() {
       if (m.gen === currentGen) setView((v) => append(v, [m]));
     });
     return () => es.close();
-  }, []);
+  }, [fixtureId]);
 
   const control = useCallback(
     async (action: "pause" | "resume" | "restart") => {
-      const body = seed === null ? { action } : { action, replaySeed: Number(seed) };
+      const body =
+        seed === null
+          ? { action, match: fixtureId }
+          : { action, match: fixtureId, replaySeed: Number(seed) };
       const r = await fetch("/api/match/control", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,7 +77,7 @@ export function useMatchStream() {
       });
       if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? "Control failed");
     },
-    [seed],
+    [seed, fixtureId],
   );
 
   return { state: view, status, gen, matchId, connected, control, isReplay: seed !== null };

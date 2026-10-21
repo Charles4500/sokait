@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { PLAYERS, TEAMS, type MatchEvent } from "@/match/engine";
+import type { MatchEvent } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import type { MatchStats } from "./types";
 
 const TABS = ["Timeline", "Lineup", "Statistics", "Insights"] as const;
@@ -47,14 +48,17 @@ function Timeline({ events }: { events: MatchEvent[] }) {
 }
 
 function Lineup() {
+  const { teams, players } = useFixture();
   return (["home", "away"] as const).map((t) => (
     <div key={t} className="mb-2">
-      <div className="font-display">{TEAMS[t].name}</div>
-      {PLAYERS.filter((p) => p.team === t).map((p) => (
-        <div key={p.id} className="text-muted-foreground">
-          #{p.num} {p.name} · {p.pos}
-        </div>
-      ))}
+      <div className="font-display">{teams[t].name}</div>
+      {players
+        .filter((p) => p.team === t)
+        .map((p) => (
+          <div key={p.id} className="text-muted-foreground">
+            #{p.num} {p.name} · {p.pos}
+          </div>
+        ))}
     </div>
   ));
 }
@@ -83,15 +87,16 @@ function Statistics({ stats }: { stats: MatchStats }) {
 }
 
 function Insights({ stats }: { stats: MatchStats }) {
-  const harder = stats.pressure.home > stats.pressure.away ? TEAMS.home.short : TEAMS.away.short;
+  const { teams } = useFixture();
+  const harder = stats.pressure.home > stats.pressure.away ? teams.home.short : teams.away.short;
   return (
     <div className="space-y-2">
       <div className="rounded-lg bg-muted/50 p-2">
         <b>Momentum</b> ·{" "}
         {stats.momentum > 2
-          ? `${TEAMS.home.short} dominating`
+          ? `${teams.home.short} dominating`
           : stats.momentum < -2
-            ? `${TEAMS.away.short} dominating`
+            ? `${teams.away.short} dominating`
             : "balanced"}
         <div className="mt-1 h-1 rounded-full bg-border">
           <div

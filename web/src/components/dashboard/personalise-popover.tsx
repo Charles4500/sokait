@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { PLAYERS, TEAMS, type TeamId } from "@/match/engine";
+import { CLUBS } from "@/match/engine";
+import { useFixture } from "@/match/fixture-context";
 import { speak, VOICE_HELP } from "@/insights/speech";
 import { useState } from "react";
 import { LANGS, type Prefs } from "./types";
@@ -22,6 +23,7 @@ export function PersonalisePopover({
   update: (patch: Partial<Prefs>) => void;
 }) {
   const [voiceOk, setVoiceOk] = useState(true);
+  const { players } = useFixture();
   return (
     <Popover>
       <Tooltip>
@@ -63,13 +65,16 @@ export function PersonalisePopover({
         </div>
         <div className="space-y-1.5">
           <div className="text-xs text-muted-foreground">Favourite club</div>
-          <Select value={prefs.favClub} onValueChange={(v) => update({ favClub: v as TeamId })}>
+          <Select value={prefs.favClub} onValueChange={(favClub) => update({ favClub })}>
             <SelectTrigger aria-label="Favourite club">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="home">♥ {TEAMS.home.name}</SelectItem>
-              <SelectItem value="away">♥ {TEAMS.away.name}</SelectItem>
+              {CLUBS.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  ♥ {c.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -80,11 +85,13 @@ export function PersonalisePopover({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {PLAYERS.filter((p) => p.pos !== "GK").map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  ★ {p.name}
-                </SelectItem>
-              ))}
+              {players
+                .filter((p) => p.pos !== "GK")
+                .map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    ★ {p.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>

@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  TEAMS,
-  PLAYERS,
   computeStats,
   playerStats,
   mvp,
@@ -11,6 +9,7 @@ import {
   type Player,
 } from "@/match/engine";
 import type { MatchView } from "@/match/use-match-stream";
+import { clubName, favSide, type FixtureInfo } from "@/match/fixture-context";
 import {
   analyseMoment,
   writeRecap,
@@ -29,17 +28,29 @@ const AI_COOLDOWN_MS = 6000;
  * moments, show the deterministic explanation at once, and upgrade it with verified
  * agent narration for every segment on screen.
  */
-export function useMatchInsights(state: MatchView, gen: number, matchId: string, prefs: Prefs) {
-  const { mode, lang, favClub, favPlayer, compare } = prefs;
+export function useMatchInsights(
+  state: MatchView,
+  gen: number,
+  matchId: string,
+  prefs: Prefs,
+  info: FixtureInfo,
+) {
+  const { mode, lang, favClub, compare } = prefs;
+  const { teams, players } = info;
 
   // (b) INTERPRET
   const stats = useMemo(() => computeStats(state.events), [state.events]);
-  const star = useMemo(() => mvp(state.events), [state.events]);
+  const star = useMemo(() => mvp(state.events, players), [state.events, players]);
   const starStats = useMemo(
     () => playerStats(state.events, star.player.id),
     [state.events, star.player.id],
   );
-  const fav = PLAYERS.find((p) => p.id === favPlayer)!;
+  // The favourite player, or (when he isn't in this match) this side's playmaker.
+  const fav =
+    players.find((p) => p.id === prefs.favPlayer) ??
+    players.find((p) => p.team === (favSide(info, favClub) ?? "home") && p.pos === "AM") ??
+    players[4]!;
+  const favPlayer = fav.id;
   const favStats = useMemo(() => playerStats(state.events, favPlayer), [state.events, favPlayer]);
   const minute = Math.min(90, Math.floor(state.clock / 60));
 
@@ -61,22 +72,23 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
     persona,
     language: lang,
     favourite_player: persona === "player" ? fav.name : null,
-    favourite_club: TEAMS[favClub].name,
+    favourite_club: clubName(favClub),
   });
 
   // (c) EXPLAIN + (d) RENDER + (e) PERSONALISE
   const isKeyMoment = (e: MatchEvent) =>
     e.importance >= 0.6 || (mode === "player" && e.player.id === favPlayer && e.importance >= 0.3);
   const seenLen = useRef(0);
-  const seenGen = useRef(gen);
+  const stream = `${matchId}#${gen}`;
+  const seenGen = useRef(stream);
   const lastAi = useRef(0);
   // Verified AI text by event id, so jumping around the timeline never loses it.
   const aiById = useRef(new Map<number, Pick<FeedItem, "ai" | "verification">>());
 
   useEffect(() => {
-    if (seenGen.current !== gen) {
-      // Match restarted: drop everything derived from the old one.
-      seenGen.current = gen;
+    if (seenGen.current !== stream) {
+      // Match restarted or switched: drop everything derived from the old one.
+      seenGen.current = stream;
       setFeed([]);
       setOnAir(null);
       setRecap("");
@@ -96,7 +108,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
         .filter(({ e }) => isKeyMoment(e))
         .map(({ e, i }) => ({
           e,
-          why: explain(e, computeStats(state.events.slice(0, i + 1))),
+          why: explain(e, computeStats(state.events.slice(0, i + 1)), teams),
           ...aiById.current.get(e.id),
         }))
         .reverse()
@@ -112,7 +124,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
     if (t) setTag({ id: e.id, text: t, player: e.player });
     if (!isKeyMoment(e)) return;
 
-    const why = explain(e, stats);
+    const why = explain(e, stats, teams);
     const title = `${e.minute}' ${e.label}`;
     setFeed((f) => [{ e, why }, ...f].slice(0, 30));
     setOnAir({
@@ -145,7 +157,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
         event: { ...e, player: e.player.name, target: e.target?.name },
         score: state.score,
         stats,
-        teams: { home: TEAMS.home, away: TEAMS.away },
+        teams: { home: teams.home, away: teams.away },
         segments,
         fallback_text: why,
       },
@@ -188,7 +200,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.events.length]);
+  }, [state.events.length, stream]);
 
   const runRecap = async () => {
     setRecapLoading(true);
@@ -199,7 +211,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
         minute,
         score: state.score,
         stats,
-        teams: { home: TEAMS.home, away: TEAMS.away },
+        teams: { home: teams.home, away: teams.away },
         segment: segmentFor(mode),
         key_moments: feed.slice(0, 12).map((f) => `${f.e.minute}' ${f.e.label}`),
         mvp: star.player.name,

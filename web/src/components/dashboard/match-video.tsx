@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { MagicStar } from "iconsax-reactjs";
 import { VerifiedBadge } from "./agent-trace";
-import { TEAMS, type MatchEvent, type Player, type TeamId } from "@/match/engine";
+import type { MatchEvent, Player, TeamId } from "@/match/engine";
+import { favSide, useFixture } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import { ClubBadge, PlayerAvatar } from "./avatars";
 import { PlayerPortrait } from "./player-card";
@@ -32,7 +33,10 @@ export function MatchVideo({
   onAir: OnAir | null;
 }) {
   const [view, setView] = useState<PitchView>("live");
-  const [heatTeam, setHeatTeam] = useState<TeamId>(prefs.favClub);
+  const info = useFixture();
+  const { teams } = info;
+  const mine = favSide(info, prefs.favClub);
+  const [heatTeam, setHeatTeam] = useState<TeamId>(mine ?? "home");
 
   return (
     <section className="flex aspect-video max-h-[70vh] w-full flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
@@ -50,13 +54,13 @@ export function MatchVideo({
           className={`absolute left-4 top-4 flex items-center gap-3 ${prefs.mode === "player" ? "right-60" : "right-4"}`}
         >
           <div className="flex shrink-0 items-center gap-3 rounded-full glass px-4 py-2 font-display">
-            <ClubBadge team="home" size={26} /> {prefs.favClub === "home" && "♥ "}
-            {TEAMS.home.short}{" "}
+            <ClubBadge team="home" size={26} /> {mine === "home" && "♥ "}
+            {teams.home.short}{" "}
             <span className="text-xl">
               {score.home} - {score.away}
             </span>{" "}
-            {TEAMS.away.short}
-            {prefs.favClub === "away" && " ♥"} <ClubBadge team="away" size={26} />
+            {teams.away.short}
+            {mine === "away" && " ♥"} <ClubBadge team="away" size={26} />
             <span className="ml-2 rounded-md bg-win/20 px-2 text-xs text-win">
               {status === "finished" ? "FT" : `${minute}'`}
             </span>

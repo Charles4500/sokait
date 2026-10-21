@@ -7,6 +7,8 @@ const Body = z.object({
   seed: z.number().int().min(0).max(0xffffffff).optional(),
   /** Seed of the private replay to control; omit for the shared match. */
   replaySeed: z.number().int().min(0).max(0xffffffff).optional(),
+  /** Fixture to control; omit for the main match. */
+  match: z.string().max(40).optional(),
 });
 
 // Producer controls. When PRODUCER_TOKEN is set, the shared match requires
@@ -17,7 +19,7 @@ export const Route = createFileRoute("/api/match/control")({
       POST: async ({ request }) => {
         const parsed = Body.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return Response.json({ error: "Invalid body" }, { status: 400 });
-        const { action, seed, replaySeed } = parsed.data;
+        const { action, seed, replaySeed, match } = parsed.data;
 
         const token = process.env["PRODUCER_TOKEN"];
         const isShared = replaySeed === undefined;
@@ -25,7 +27,10 @@ export const Route = createFileRoute("/api/match/control")({
           return Response.json({ error: "Producer token required" }, { status: 401 });
         }
 
-        const session = getSession(parseSeed(replaySeed === undefined ? null : String(replaySeed)));
+        const session = getSession(
+          parseSeed(replaySeed === undefined ? null : String(replaySeed)),
+          match,
+        );
         if (action === "pause") session.pause();
         else if (action === "resume") session.resume();
         else session.restart(isShared ? seed : session.currentSeed);

@@ -15,7 +15,8 @@ export const LANGS = ["English", "Swahili", "Spanish", "French", "Arabic", "Port
 export interface Prefs {
   mode: Mode;
   lang: string;
-  favClub: TeamId;
+  /** Club id (any club in the league), not a side. */
+  favClub: string;
   favPlayer: string;
   voice: boolean;
   compare: boolean;

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getSession, parseSeed, type HubMessage } from "@/match/hub";
 
 // Live SSE stream of one shared synthetic match.
+// - `?match=<fixture>` picks one of the fixtures playing at the same time.
 // - `?seed=N` opens a private, reproducible replay instead of the shared match.
 // - Reconnects send Last-Event-ID ("gen:seq") and receive only the events they missed.
 export const Route = createFileRoute("/api/match/stream")({
@@ -9,7 +10,10 @@ export const Route = createFileRoute("/api/match/stream")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const session = getSession(parseSeed(url.searchParams.get("seed")));
+        const session = getSession(
+          parseSeed(url.searchParams.get("seed")),
+          url.searchParams.get("match"),
+        );
         const [genRaw, seqRaw] = (request.headers.get("last-event-id") ?? "").split(":");
         const lastGen = genRaw ? Number(genRaw) : null;
         const lastSeq = Number(seqRaw) || 0;

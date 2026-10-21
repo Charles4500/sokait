@@ -9,7 +9,7 @@ const ev = (over: Partial<MatchEvent>): MatchEvent => ({
   second: 0,
   type: "pass",
   team: "home",
-  player: player("home-10"),
+  player: player("thr-10"),
   zone: "mid",
   importance: 0.2,
   label: "",
@@ -32,9 +32,9 @@ describe("where", () => {
 
 describe("spoken lines", () => {
   it("keeps every-touch calls short", () => {
-    const pass = ev({ passAccurate: true, target: player("home-9") });
+    const pass = ev({ passAccurate: true, target: player("thr-9") });
     expect(shortLine(pass)).toBe("Vargas to Pike");
-    expect(shortLine(ev({ type: "tackle", team: "away", player: player("away-3") }))).toBe(
+    expect(shortLine(ev({ type: "tackle", team: "away", player: player("mer-3") }))).toBe(
       "Dunn wins it",
     );
   });
@@ -67,7 +67,7 @@ describe("spoken lines", () => {
 describe("local answers", () => {
   let s = initialState(5);
   for (let i = 0; i < 80; i++) s = nextEvent(s);
-  const ctx = { events: s.events, score: s.score, minute: 30, favPlayer: "away-11" };
+  const ctx = { events: s.events, score: s.score, minute: 30, favPlayer: "mer-11" };
 
   it("answers common questions without the agent", () => {
     expect(localAnswer("What's the score?", ctx)).toMatch(/^It's Thames Rovers \d+, Mersey/);

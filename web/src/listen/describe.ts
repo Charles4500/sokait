@@ -8,7 +8,9 @@ import {
   playerStats,
   PLAYERS,
   type MatchEvent,
+  type Player,
   type TeamId,
+  type Teams,
 } from "@/match/engine";
 
 /** Where the ball is, from the point of view of the team on the ball. */
@@ -35,7 +37,7 @@ export function where(team: TeamId, x: number, y: number): string {
 const surname = (name: string) => name.split(" ").slice(-1)[0]!;
 
 /** A few spoken words for one event, for the "every touch" detail level. */
-export function shortLine(e: MatchEvent): string {
+export function shortLine(e: MatchEvent, teams: Teams = TEAMS): string {
   const p = surname(e.player.name);
   switch (e.type) {
     case "pass":
@@ -51,7 +53,7 @@ export function shortLine(e: MatchEvent): string {
     case "pressure":
       return `${p} presses`;
     case "possession":
-      return `${TEAMS[e.team].name} on the ball`;
+      return `${teams[e.team].name} on the ball`;
   }
 }
 
@@ -83,11 +85,15 @@ const PASS_CALLS = [
 const pick = <T>(bank: T[], id: number) => bank[id % bank.length]!;
 
 /** The line spoken first for a key moment, before AI narration arrives. */
-export function keyMomentLine(e: MatchEvent, score: Record<TeamId, number>): string {
+export function keyMomentLine(
+  e: MatchEvent,
+  score: Record<TeamId, number>,
+  teams: Teams = TEAMS,
+): string {
   const at = where(e.team, e.x, e.y);
   const name = surname(e.player.name);
   if (e.type === "goal") {
-    return `${pick(GOAL_CALLS, e.id)(name)} ${TEAMS[e.team].name}, ${at}. It's ${scoreLine(score)}.`;
+    return `${pick(GOAL_CALLS, e.id)(name)} ${teams[e.team].name}, ${at}. It's ${scoreLine(score, teams)}.`;
   }
   if (e.type === "shot") {
     const call = (e.xg ?? 0) >= 0.3 ? pick(CHANCE_CALLS, e.id) : pick(SHOT_CALLS, e.id);
@@ -97,8 +103,8 @@ export function keyMomentLine(e: MatchEvent, score: Record<TeamId, number>): str
   return `${e.player.name}, ${at}.`;
 }
 
-export function scoreLine(score: Record<TeamId, number>): string {
-  return `${TEAMS.home.name} ${score.home}, ${TEAMS.away.name} ${score.away}`;
+export function scoreLine(score: Record<TeamId, number>, teams: Teams = TEAMS): string {
+  return `${teams.home.name} ${score.home}, ${teams.away.name} ${score.away}`;
 }
 
 export interface MatchContext {
@@ -106,6 +112,8 @@ export interface MatchContext {
   score: Record<TeamId, number>;
   minute: number;
   favPlayer: string;
+  teams?: Teams;
+  players?: Player[];
 }
 
 /**
@@ -114,29 +122,31 @@ export interface MatchContext {
  */
 export function localAnswer(question: string, ctx: MatchContext): string | null {
   const q = question.toLowerCase();
+  const teams = ctx.teams ?? TEAMS;
+  const players = ctx.players ?? PLAYERS;
   const last = ctx.events[ctx.events.length - 1];
   const has = (...words: string[]) => words.some((w) => q.includes(w));
 
   if (has("score", "winning", "who's ahead", "who is ahead")) {
-    return `It's ${scoreLine(ctx.score)}, in minute ${ctx.minute}.`;
+    return `It's ${scoreLine(ctx.score, teams)}, in minute ${ctx.minute}.`;
   }
   if (has("time", "minute", "how long")) {
-    return `It's minute ${ctx.minute}. ${scoreLine(ctx.score)}.`;
+    return `It's minute ${ctx.minute}. ${scoreLine(ctx.score, teams)}.`;
   }
   if (has("where is the ball", "where's the ball", "where the ball")) {
     if (!last) return "The match hasn't started yet.";
-    return `${TEAMS[last.team].name} have it ${where(last.team, last.toX, last.toY)}.`;
+    return `${teams[last.team].name} have it ${where(last.team, last.toX, last.toY)}.`;
   }
   if (has("who has the ball", "who's got the ball", "who has it", "possession")) {
     if (!last) return "The match hasn't started yet.";
     const stats = computeStats(ctx.events);
-    return `${last.player.name} of ${TEAMS[last.team].name}. Possession is ${TEAMS.home.name} ${stats.possession.home} percent, ${TEAMS.away.name} ${stats.possession.away} percent.`;
+    return `${last.player.name} of ${teams[last.team].name}. Possession is ${teams.home.name} ${stats.possession.home} percent, ${teams.away.name} ${stats.possession.away} percent.`;
   }
-  const named = PLAYERS.find(
+  const named = players.find(
     (p) => q.includes(p.name.toLowerCase()) || q.includes(surname(p.name).toLowerCase()),
   );
   const asksAboutMine = has("my player", "how is he", "how's he");
-  const player = named ?? (asksAboutMine ? PLAYERS.find((p) => p.id === ctx.favPlayer) : undefined);
+  const player = named ?? (asksAboutMine ? players.find((p) => p.id === ctx.favPlayer) : undefined);
   if (player && has("how", "doing", "playing", "stats")) {
     const s = playerStats(ctx.events, player.id);
     return `${player.name} has ${s.touches} touches, ${s.passAcc} percent passing, ${s.goals} goals and a rating of ${s.rating}.`;

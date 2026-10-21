@@ -10,7 +10,10 @@ export const Route = createFileRoute("/api/public/feed")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const session = getSession(parseSeed(url.searchParams.get("seed")));
+        const session = getSession(
+          parseSeed(url.searchParams.get("seed")),
+          url.searchParams.get("match"),
+        );
         const enc = new TextEncoder();
         let cleanup = () => {};
         const stream = new ReadableStream({
