@@ -37,6 +37,9 @@ commentary and voice questions, using just a phone and headphones.
 - **Trust you can see:** every insight shows which agents ran, how long they took, the
   evidence they used, and whether the text passed the Fact-Checker, was repaired, or fell
   back to the deterministic explanation.
+- **Ask the match:** a floating assistant on every screen answers typed or spoken
+  questions. Common ones are answered instantly on the device; the rest go to the Match
+  Q&A agent and show whether they passed the Fact-Checker.
 - **PitchPulse Listen:** spatial ball audio (your club always attacks to your right),
   earcons for passes, shots and goals, spoken AI commentary, voice questions answered by a
   Match Q&A agent, and a screen-reader mode.
