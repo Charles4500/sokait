@@ -28,13 +28,33 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 | Time | Shot                                                                                        |
 | ---- | ------------------------------------------------------------------------------------------- |
 | 0:00 | Problem: live stats don't tell fans _why_; most fans can't read xG; blind fans are left out |
-| 0:12 | Dashboard live: pitch, a goal, the lower-third commentary, the commentary feed              |
-| 0:30 | Switch persona and language: same moment, Analyst vs Fan, Swahili                           |
-| 0:45 | "How the last insight was made": agent trace, evidence, a Fact-Checker repair               |
-| 1:00 | Timeline: jump back to a goal; Live now: switch to the match your club is in                |
-| 1:15 | PitchPulse Listen with headphones: spatial audio, spoken commentary, a voice question       |
-| 1:40 | Architecture in one frame: agents, Fact-Checker, failover, Microsoft Agent Framework        |
+| 0:10 | Matchday page: three live matches, what's coming up, follow your club; click Watch          |
+| 0:18 | Goal: Nico Vargas scores, the commentator call, the lower third, the commentary feed        |
+| 0:32 | Switch persona and language: same moment, Analyst vs Fan, then Swahili from the timeline    |
+| 0:45 | "How the last insight was made": agent trace, evidence, the Fact-Checker verdict            |
+| 0:58 | Ask the match: type a question, then ask one with the mic; the verified badge               |
+| 1:10 | Timeline: jump back to the goal; Live now: switch to the other match your club follows      |
+| 1:22 | PitchPulse Listen with headphones: spatial audio, the late winner called out loud           |
+| 1:42 | Architecture in one frame: agents, Fact-Checker, Groq → Gemini failover, Agent Framework    |
 | 1:55 | Close                                                                                       |
 
-Before recording: fresh model quota, close other tabs, `VOICE_PRELOAD` set to the
-languages shown, Microsoft Edge for natural browser voices.
+### The demo match
+
+`/watch?seed=965` replays a fixed Thames Rovers vs Mersey Athletic, the same every time.
+Seconds after the page opens: Vargas scores at **0:26** (12'), Mersey equalise at **0:40**
+(18'), Vargas wins it at **3:00** (81'). **Restart match** replays it from kick-off. Other
+seeds: `bun scripts/find-demo-seed.ts` in `web/`.
+
+### Recording checklist
+
+1. Record in the morning, on a fresh Groq quota. Gemini covers the rest if Groq runs out.
+2. Start the three services (see the README), with the voice preloaded:
+   `VOICE_PRELOAD="English,Swahili" uv run uvicorn pitchpulse_voice.server:app --port 8001`
+3. Microsoft Edge, headphones, 1920×1080, zoom 100%, other tabs and notifications off.
+4. On the matchday page: favourite club Thames Rovers, and also follow one other club.
+5. On the watch page: voice on (timeline speaker), language EN, viewing as Casual fan.
+6. Rehearse once. Each Restart match calls the agents afresh (new moment ids), so keep
+   retakes to the shots that need them to save quota.
+7. Record each shot as its own take; cut them together in Clipchamp or any editor.
+8. Export at 1080p, check it is under 2:00, upload to YouTube (unlisted is fine), and put
+   the link in `README.md` and `docs/SUBMISSION.md`.
