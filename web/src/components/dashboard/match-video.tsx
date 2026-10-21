@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MagicStar } from "iconsax-reactjs";
 import { VerifiedBadge } from "./agent-trace";
 import type { MatchEvent, Player, TeamId } from "@/match/engine";
@@ -108,14 +108,10 @@ export function MatchVideo({
         {corner && <div className="absolute bottom-3 right-3 z-10 hidden md:block">{corner}</div>}
       </div>
 
-      {/* Lower third: on-air insights stacked like live comments, under the pitch on the
-          same grass, so insights never cover the play. */}
+      {/* Lower third: the on-air insight as a live comment, under the pitch on the same
+          grass, so it never covers the play. */}
       <div className="flex shrink-0 flex-col items-stretch gap-1.5 px-3 pb-2 sm:flex-row sm:items-end sm:gap-4 sm:px-4">
-        <LiveComments
-          key={`${teams.home.short}-${teams.away.short}`}
-          onAir={onAir}
-          lang={prefs.lang}
-        />
+        <LiveComment onAir={onAir} lang={prefs.lang} />
         <PitchViewSwitch
           view={view}
           setView={setView}
@@ -127,66 +123,38 @@ export function MatchVideo({
   );
 }
 
-/** How many insights stay in the stack; older ones fade out at the top. */
-const FEED_SIZE = 3;
-
-function LiveComments({ onAir, lang }: { onAir: OnAir | null; lang: string }) {
-  const [feed, setFeed] = useState<OnAir[]>([]);
-  useEffect(() => {
-    if (!onAir) return;
-    setFeed((f) => {
-      const last = f.at(-1);
-      if (last?.title === onAir.title) return f;
-      // Back in time (restart, replay): start the stack again.
-      if (last && onAir.minute < last.minute) return [onAir];
-      return [...f, onAir].slice(-FEED_SIZE);
-    });
-  }, [onAir]);
-
-  if (feed.length === 0) {
-    return (
-      <p className="flex min-h-8 min-w-0 flex-1 items-center gap-2 text-[11px] text-white/70">
-        <span className="h-1.5 w-1.5 rounded-full bg-live animate-live" />
-        Live analysis · waiting for the next big moment
-      </p>
-    );
-  }
+/** One insight at a time, in a fixed-height slot so the page never shifts. */
+function LiveComment({ onAir, lang }: { onAir: OnAir | null; lang: string }) {
   return (
-    <ol
-      aria-live="polite"
-      className="flex max-h-28 min-w-0 flex-1 flex-col justify-end gap-1 overflow-hidden mask-t-from-40%"
-    >
-      {feed.map((c, i) => {
-        const newest = i === feed.length - 1;
-        return (
-          <li
-            key={c.title}
-            className={`flex w-fit max-w-full items-start gap-1.5 rounded-xl bg-black/30 py-1 pl-1 pr-3 transition-opacity duration-500 animate-slide-in ${newest ? "" : "opacity-75"}`}
+    <div aria-live="polite" className="flex h-12 min-w-0 flex-1 items-center">
+      {onAir ? (
+        <div
+          key={onAir.title}
+          className="flex max-w-full items-center gap-2 rounded-xl bg-black/30 py-1 pl-1 pr-3 animate-slide-in"
+        >
+          <span
+            className={`shrink-0 rounded-full ring-2 ${onAir.team === "home" ? "ring-team-home" : "ring-team-away"}`}
           >
-            <span
-              className={`shrink-0 rounded-full ring-2 ${c.team === "home" ? "ring-team-home" : "ring-team-away"}`}
-            >
-              <PlayerAvatar player={c.player} size={newest ? 28 : 22} />
+            <PlayerAvatar player={onAir.player} size={28} />
+          </span>
+          <p className="line-clamp-2 min-w-0 text-sm leading-snug text-white [text-shadow:0_1px_2px_oklch(0_0_0/0.6)]">
+            <span className="mr-1.5 font-display font-semibold">
+              {onAir.minute}' {onAir.player.name}
             </span>
-            {/* The newest gets two lines to be read in full; older ones shrink to one. */}
-            <p
-              className={`min-w-0 text-white [text-shadow:0_1px_2px_oklch(0_0_0/0.6)] ${newest ? "line-clamp-2 text-sm leading-snug" : "truncate text-xs leading-5"}`}
-            >
-              <span className="mr-1.5 font-display font-semibold text-white">
-                {c.minute}' {c.player.name}
-              </span>
-              {c.text}
-              {newest && (
-                <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] text-white/75">
-                  <MagicStar variant="Bulk" className="h-3 w-3 text-primary" />
-                  {c.ai ? `AI · ${lang}` : "Live"}
-                  {c.verification && <VerifiedBadge v={c.verification} />}
-                </span>
-              )}
-            </p>
-          </li>
-        );
-      })}
-    </ol>
+            {onAir.text}
+            <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] text-white/75">
+              <MagicStar variant="Bulk" className="h-3 w-3 text-primary" />
+              {onAir.ai ? `AI · ${lang}` : "Live"}
+              {onAir.verification && <VerifiedBadge v={onAir.verification} />}
+            </span>
+          </p>
+        </div>
+      ) : (
+        <p className="flex items-center gap-2 text-[11px] text-white/70">
+          <span className="h-1.5 w-1.5 rounded-full bg-live animate-live" />
+          Live analysis · waiting for the next big moment
+        </p>
+      )}
+    </div>
   );
 }
