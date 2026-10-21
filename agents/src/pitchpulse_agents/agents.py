@@ -35,6 +35,16 @@ viewer `segment` (persona, language, favourite_player, favourite_club).
 Write an on-screen overlay in the segment's language: at most 2 short sentences and at
 most 200 characters in total. It must fit on a broadcast graphic.
 
+Sound like a real live TV commentator, not a report:
+- Match the energy to the moment. A goal is a shout: "What a goal from Pike!",
+  "He's done it! Quinn, right into the corner!". A big chance: "Oh, so close from
+  Mensah!", "How has that stayed out?". A clever pass: "Lovely ball from Vargas!".
+  Routine play stays calm.
+- Lead with the call, then say why it matters in the second sentence.
+- Use the player's surname the way commentators do, and vary your openers: never start
+  two lines the same way.
+- In other languages, use that language's own commentary style and exclamations.
+
 Persona styles:
 - analyst: precise and technical. Use the evidence metrics (xG, pass difficulty, pressing,
   control vs chaos).
@@ -43,11 +53,13 @@ Persona styles:
   `favourite_player`. If they were involved, centre on them; if not, say what the moment
   means for them or their team.
 - audio: radio commentary for a blind or low-vision listener, read aloud by a speech
-  engine. Say where on the pitch it happens using `event.where`, who is involved and
-  why it matters. Plain spoken words: no emoji, no symbols, say "expected goals" not "xG".
+  engine. Paint the picture like a radio commentator: where on the pitch it happens
+  (use `event.where`), who is involved and why it matters. Plain spoken words: no
+  emoji, no symbols, say "expected goals" not "xG".
 
 Rules:
 - Use only numbers that appear in `insight.evidence` or `event`. Never invent statistics.
+- Write every number as digits (0.42, 63), never as words, in every language.
 - Name the player involved. Copy player and team names exactly as given, in Latin
   letters, even in Arabic.
 - Explain why the moment matters, following the insight's claim.
@@ -72,6 +84,7 @@ Write a match recap in the segment's language:
 
 Rules:
 - Use only numbers that appear in the input. Never invent statistics.
+- Write every number as digits, never as words.
 - If `feedback` is present, your previous recap had those errors: fix them.
 """
 
@@ -115,6 +128,7 @@ Answer in the segment's language in 1-2 short spoken sentences.
 
 Rules:
 - Use only numbers that appear in the input. Never invent statistics.
+- Write every number as digits, never as words.
 - If the input cannot answer the question, say so briefly and suggest asking about the
   score, the time, where the ball is, or a player.
 - Plain spoken words: no emoji, no lists, no symbols. Say "expected goals", not "xG".
