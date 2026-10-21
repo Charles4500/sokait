@@ -1,5 +1,5 @@
-// Speech in and out for PitchPulse Listen, using the browser's built-in engines.
-import { LANG_CODES } from "@/insights/speech";
+// Speech in and out for PitchPulse Listen.
+import { LANG_CODES, speakLine, type Utterance } from "@/insights/speech";
 
 export type Priority = "low" | "normal" | "high";
 const RANK: Record<Priority, number> = { low: 0, normal: 1, high: 2 };
@@ -12,20 +12,21 @@ const RANK: Record<Priority, number> = { low: 0, normal: 1, high: 2 };
 export class Announcer {
   private queue: { text: string; priority: Priority }[] = [];
   private speaking: Priority | null = null;
+  private current: Utterance | null = null;
   rate = 1.1;
   language = "English";
   /** When on, nothing is spoken here: the page's live region feeds the screen reader. */
   screenReader = false;
-  onSpoken: (text: string, priority: Priority) => void = () => {};
+  /** Called when no engine could speak (no natural browser voice, voice service down). */
+  onUnavailable: () => void = () => {};
 
   say(text: string, priority: Priority = "normal") {
-    this.onSpoken(text, priority);
-    if (this.screenReader || typeof window === "undefined" || !("speechSynthesis" in window))
-      return;
+    if (this.screenReader || typeof window === "undefined") return;
     if (priority === "low" && (this.speaking !== null || this.queue.length)) return;
     if (this.speaking !== null && RANK[priority] > RANK[this.speaking]) {
       this.queue = this.queue.filter((q) => RANK[q.priority] >= RANK[priority]);
-      window.speechSynthesis.cancel();
+      this.current?.cancel();
+      this.current = null;
       this.speaking = null;
     }
     this.queue.push({ text, priority });
@@ -35,31 +36,26 @@ export class Announcer {
 
   stop() {
     this.queue = [];
+    this.current?.cancel();
+    this.current = null;
     this.speaking = null;
-    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
   }
 
   private next() {
     if (this.speaking !== null) return;
     const item = this.queue.shift();
     if (!item) return;
-    const synth = window.speechSynthesis;
-    const u = new SpeechSynthesisUtterance(item.text);
-    const lang = LANG_CODES[this.language] ?? "en-GB";
-    u.lang = lang;
-    u.voice =
-      synth.getVoices().find((v) => v.lang === lang) ??
-      synth.getVoices().find((v) => v.lang.startsWith(lang.slice(0, 2))) ??
-      null;
-    u.rate = this.rate;
     this.speaking = item.priority;
-    const done = () => {
-      if (this.speaking === item.priority) this.speaking = null;
-      this.next();
-    };
-    u.onend = done;
-    u.onerror = done;
-    synth.speak(u);
+    const u = speakLine(item.text, this.language, this.rate);
+    this.current = u;
+    u.done
+      .catch(() => this.onUnavailable())
+      .finally(() => {
+        if (this.current !== u) return; // cancelled by a higher-priority line
+        this.current = null;
+        this.speaking = null;
+        this.next();
+      });
   }
 }
 

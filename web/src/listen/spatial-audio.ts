@@ -3,8 +3,9 @@
 // The listener stands at the halfway line, facing the far touchline. Their favourite
 // club always attacks to their RIGHT, so left/right tells them which goal is under
 // threat. Through headphones the HRTF panner also places sounds in front (far touchline)
-// or behind (near touchline). A soft tone follows the ball and rises in pitch as it
-// nears either goal. Every event type has its own short sound ("earcon").
+// or behind (near touchline). A soft tick plays where the ball is, getting faster and
+// slightly higher as it nears either goal, like a heartbeat. Every event type has its
+// own short sound ("earcon").
 import { PITCH, type EventType, type TeamId } from "@/match/engine";
 
 const SPREAD_X = 4; // metres of virtual space either side of the listener
@@ -14,8 +15,8 @@ export class SpatialPitch {
   private ctx: AudioContext | null = null;
   private master!: GainNode;
   private ballPanner!: PannerNode;
-  private ballOsc!: OscillatorNode;
-  private ballGain!: GainNode;
+  private danger = 0; // 0 at halfway, 1 on a goal line
+  private tickTimer: ReturnType<typeof setTimeout> | null = null;
   private favClub: TeamId = "home";
   private ballOn = true;
 
@@ -33,17 +34,14 @@ export class SpatialPitch {
     this.master.connect(ctx.destination);
 
     this.ballPanner = this.panner();
-    this.ballGain = ctx.createGain();
-    this.ballGain.gain.value = this.ballOn ? 0.035 : 0;
-    this.ballOsc = ctx.createOscillator();
-    this.ballOsc.type = "triangle";
-    this.ballOsc.frequency.value = 220;
-    this.ballOsc.connect(this.ballGain).connect(this.ballPanner).connect(this.master);
-    this.ballOsc.start();
+    this.ballPanner.connect(this.master);
     await ctx.resume();
+    this.tick();
   }
 
   stop() {
+    if (this.tickTimer) clearTimeout(this.tickTimer);
+    this.tickTimer = null;
     void this.ctx?.close();
     this.ctx = null;
   }
@@ -58,20 +56,17 @@ export class SpatialPitch {
 
   setBallSound(on: boolean) {
     this.ballOn = on;
-    if (this.ctx) this.ballGain.gain.setTargetAtTime(on ? 0.035 : 0, this.ctx.currentTime, 0.1);
   }
 
-  /** Glide the ball tone to a new pitch position. */
+  /** Move the ball's tick to a new pitch position. */
   moveBall(x: number, y: number) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     const { ax, az } = this.toAudio(x, y);
     this.ballPanner.positionX.linearRampToValueAtTime(ax, t + 0.5);
     this.ballPanner.positionZ.linearRampToValueAtTime(az, t + 0.5);
-    // Higher as the ball nears either goal: danger you can hear.
     const nearGoal = Math.min(x, PITCH.length - x) / (PITCH.length / 2); // 0 at a goal line
-    const freq = 200 + 260 * (1 - nearGoal) ** 2;
-    this.ballOsc.frequency.linearRampToValueAtTime(freq, t + 0.5);
+    this.danger = (1 - nearGoal) ** 2;
   }
 
   /** A short sound for an event, placed where it happened. */
@@ -100,6 +95,26 @@ export class SpatialPitch {
   }
 
   // ---- internals ----
+
+  /** One soft tick at the ball, then schedule the next: faster near a goal. */
+  private tick() {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (this.ballOn && ctx.state === "running") {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 520 + 260 * this.danger;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.06, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      osc.connect(g).connect(this.ballPanner);
+      osc.start(t);
+      osc.stop(t + 0.08);
+    }
+    this.tickTimer = setTimeout(() => this.tick(), 1200 - 850 * this.danger);
+  }
 
   private toAudio(x: number, y: number) {
     // Rotate the pitch so the favourite club always attacks to the listener's right.

@@ -47,3 +47,16 @@ def test_ask_endpoint():
     r = client.post("/ask", json=ask_request().model_dump())
     assert r.status_code == 200
     assert r.json()["answer"]
+
+
+def test_tts_speaks_or_reports_missing_voice():
+    r = client.post("/tts", json={"text": "Goal!", "language": "English"})
+    if "English" in client.get("/healthz").json()["tts_languages"]:
+        assert r.status_code == 200 and r.headers["content-type"] == "audio/wav"
+        assert r.content[:4] == b"RIFF"
+    else:  # CI has no voice files
+        assert r.status_code == 404
+    assert (
+        client.post("/tts", json={"text": "x", "language": "Klingon"}).status_code
+        == 404
+    )

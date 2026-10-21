@@ -45,6 +45,7 @@ export function useListen(
   const announcer = useRef<Announcer | null>(null);
   const [started, setStarted] = useState(false);
   const [log, setLog] = useState<Spoken[]>([]);
+  const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const prefsRef = useRef(prefs);
   prefsRef.current = prefs;
   const nextId = useRef(0);
@@ -76,6 +77,7 @@ export function useListen(
   const start = useCallback(async () => {
     audio.current ??= new SpatialPitch();
     announcer.current ??= new Announcer();
+    announcer.current.onUnavailable = () => setVoiceUnavailable(true);
     const p = prefsRef.current;
     Object.assign(announcer.current, {
       language: p.lang,
@@ -251,5 +253,16 @@ export function useListen(
     );
   }, [say, state.events]);
 
-  return { started, start, stop, log, ask, thinking, repeatScore, repeatWhere, minute };
+  return {
+    started,
+    start,
+    stop,
+    log,
+    ask,
+    thinking,
+    repeatScore,
+    repeatWhere,
+    minute,
+    voiceUnavailable,
+  };
 }

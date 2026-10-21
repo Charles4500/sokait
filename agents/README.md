@@ -27,6 +27,20 @@ uv run uvicorn pitchpulse_agents.server:app --reload --port 8000
 uv run pytest
 ```
 
+## Voices
+
+Spoken commentary uses [Piper](https://github.com/OHF-Voice/piper1-gpl) neural voices,
+free and running on the CPU. Download them once (about 360 MB):
+
+```sh
+for v in en_GB-northern_english_male-medium sw_CD-lanfrica-medium es_ES-davefx-medium \
+         fr_FR-siwis-medium ar_JO-kareem-medium pt_BR-faber-medium; do
+  uv run python -m piper.download_voices --download-dir voices "$v"
+done
+```
+
+The Docker image downloads them at build time. `POST /tts` returns WAV audio.
+
 ## Model backend
 
 Chosen from the environment, in this order:

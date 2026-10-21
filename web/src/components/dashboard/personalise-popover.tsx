@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PLAYERS, TEAMS, type TeamId } from "@/match/engine";
 import { speak, VOICE_HELP } from "@/insights/speech";
-import { useVoiceStatus } from "@/insights/use-voice-status";
+import { useState } from "react";
 import { LANGS, type Prefs } from "./types";
 
 export function PersonalisePopover({
@@ -21,7 +21,7 @@ export function PersonalisePopover({
   prefs: Prefs;
   update: (patch: Partial<Prefs>) => void;
 }) {
-  const voice = useVoiceStatus(prefs.lang, prefs.voice);
+  const [voiceOk, setVoiceOk] = useState(true);
   return (
     <Popover>
       <Tooltip>
@@ -102,13 +102,13 @@ export function PersonalisePopover({
               checked={prefs.voice}
               onCheckedChange={(voice) => {
                 update({ voice });
-                if (voice) speak("Commentary on.", prefs.lang).catch(() => {});
+                if (voice) void speak("Commentary on.", prefs.lang).then(setVoiceOk);
               }}
             />
           </label>
-          {prefs.voice && voice !== "ok" && voice !== "checking" && (
+          {prefs.voice && !voiceOk && (
             <p role="alert" className="rounded-lg bg-live/15 p-2 text-xs">
-              {VOICE_HELP[voice]}
+              {VOICE_HELP}
             </p>
           )}
           <label className="flex items-center justify-between gap-2">

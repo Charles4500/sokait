@@ -7,7 +7,6 @@ import { useMatchStream } from "@/match/use-match-stream";
 import { useListen, type Detail, type ListenPrefs, type Spoken } from "@/listen/use-listen";
 import { listenOnce, listeningSupported } from "@/listen/voice";
 import { VOICE_HELP } from "@/insights/speech";
-import { useVoiceStatus } from "@/insights/use-voice-status";
 
 export const Route = createFileRoute("/listen")({
   head: () => ({
@@ -64,7 +63,6 @@ function ListenPage() {
     });
 
   const { state, status, gen, matchId } = useMatchStream();
-  const voice = useVoiceStatus(prefs.lang, !prefs.screenReader);
   const listen = useListen(state, status, gen, matchId, prefs);
 
   // ---- asking by voice or by typing ----
@@ -133,9 +131,9 @@ function ListenPage() {
           </p>
         </header>
 
-        {!prefs.screenReader && (voice === "none" || voice === "no-language") && (
+        {!prefs.screenReader && listen.voiceUnavailable && (
           <p role="alert" className="rounded-2xl bg-live/15 p-4 text-base">
-            {VOICE_HELP[voice]} You can also turn on “Use my screen reader” under Personalise.
+            {VOICE_HELP}
           </p>
         )}
 
@@ -161,7 +159,7 @@ function ListenPage() {
               </h2>
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-base">
                 <li>{TEAMS[prefs.favClub].name} always attack to your right.</li>
-                <li>A soft hum follows the ball and rises as it nears a goal.</li>
+                <li>A soft tick follows the ball and speeds up as it nears a goal.</li>
                 <li>Two rising notes: your team wins the ball. Falling notes: the opponent.</li>
                 <li>A click is a pass, a whoosh is a shot, a fanfare is a goal.</li>
                 <li>Ask anything out loud, like “who is winning?” or “how is Mensah doing?”</li>
