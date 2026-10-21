@@ -70,7 +70,7 @@ Each agent has one job and a typed input and output. They coordinate through a s
 
 ### Handoffs and failure recovery
 
-Live overlays have a hard time budget, for example 2.5 s from event to AI text.
+Live overlays have a hard time budget: 4 s from event to AI text (the deterministic explanation is on screen from the first frame, and an overlay stays up for 4.5–8 s).
 
 1. When a key moment arrives, the deterministic `explain()` text goes on screen **at once**. Viewers never wait for AI.
 2. The Producer runs Analyst → Narrator → Fact-Checker inside the time budget.

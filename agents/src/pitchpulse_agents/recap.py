@@ -9,6 +9,7 @@ from typing import Any
 
 from agent_framework import Agent
 
+from .clients import run_options
 from .facts import build_recap_facts, check_numbers
 from .memory import CircuitBreaker, MemoryStore
 from .models import Recap, RecapOut, RecapRequest, TraceStep, Verification
@@ -63,9 +64,7 @@ async def write_recap(
                 payload["feedback"] = issues
             try:
                 r = await asyncio.wait_for(
-                    agent.run(
-                        json.dumps(payload), options={"response_format": RecapOut}
-                    ),
+                    agent.run(json.dumps(payload), options=run_options(RecapOut)),
                     timeout=budget_s,
                 )
             except TimeoutError:

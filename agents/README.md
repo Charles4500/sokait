@@ -37,7 +37,7 @@ Chosen from the environment, in this order:
 | OpenAI-compatible | `OPENAI_API_KEY`, optional `OPENAI_BASE_URL`, `OPENAI_MODEL` |
 | Offline | nothing set: deterministic rule-based client, no network. English templates only. |
 
-Other settings: `MOMENT_BUDGET_S` (default 2.5), `AGENTS_TOKEN` (require `Authorization: Bearer <token>`).
+Other settings: `MOMENT_BUDGET_S` (default 4), `AGENTS_TOKEN` (require `Authorization: Bearer <token>`).
 
 ## API
 

@@ -31,10 +31,18 @@ def _flatten(prefix: str, value: Any, out: Facts) -> None:
         out[prefix] = value
 
 
+# Engine bookkeeping, not football facts: agents never see these.
+INTERNAL_EVENT_FIELDS = {"id", "importance", "second", "label", "toX", "toY"}
+
+
+def public_event(event: dict) -> dict:
+    return {k: v for k, v in event.items() if k not in INTERNAL_EVENT_FIELDS}
+
+
 def build_facts(req: MomentRequest) -> Facts:
     facts: Facts = {}
     _flatten("", req.stats, facts)
-    _flatten("event", req.event, facts)
+    _flatten("event", public_event(req.event), facts)
     _flatten("score", req.score, facts)
     facts["minute"] = float(req.minute)
     for side, team in req.teams.items():
@@ -108,3 +116,14 @@ def check_numbers(text: str, facts: Facts) -> list[str]:
 
 def _fmt(v: float) -> str:
     return f"{v:g}"
+
+
+def check_names(text: str, event: dict) -> list[str]:
+    """The player on the ball must be named exactly as in the data (surname is enough),
+    so names are never mistranslated or misspelt in another script."""
+    actor = event.get("player")
+    if not isinstance(actor, str) or not actor:
+        return []
+    if actor in text or actor.split()[-1] in text:
+        return []
+    return [f'name the player exactly as "{actor}" in Latin letters']

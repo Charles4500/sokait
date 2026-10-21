@@ -94,7 +94,7 @@ async def test_invented_number_is_rejected_then_repaired(moment):
 
 
 async def test_narrator_that_keeps_inventing_falls_back(moment):
-    client = ScriptedNarrator(["He has scored 9 this season."])
+    client = ScriptedNarrator(["Quinn has scored 9 this season."])
     m = make_moment(segments=[{"persona": "casual"}])
     ov = await InsightsEngine(client, budget_s=5).process(m)
     n = ov.narrations[0]

@@ -1,6 +1,7 @@
 from pitchpulse_agents.facts import (
     build_facts,
     check_evidence,
+    check_names,
     check_numbers,
     numbers_in,
 )
@@ -51,3 +52,13 @@ def test_evidence_must_cite_real_keys_and_values(moment):
     assert check_evidence([Evidence(stat="xg.total", value=2)], f) == [
         "unknown stat 'xg.total'"
     ]
+
+
+def test_player_must_be_named_exactly():
+    event = {"player": "Theo Quinn"}
+    assert check_names("Theo Quinn shoots!", event) == []
+    assert check_names("¡Disparo de Quinn!", event) == []
+    assert check_names("تسديدة ثيرو كوين", event) == [
+        'name the player exactly as "Theo Quinn" in Latin letters'
+    ]
+    assert check_names("Anything", {"type": "possession"}) == []

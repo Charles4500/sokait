@@ -18,8 +18,15 @@ from agent_framework import Agent, Executor, WorkflowBuilder, WorkflowContext, h
 
 from .agents import make_analyst, make_narrator, make_recap_editor
 from .cache import TTLCache
-from .clients import make_chat_client
-from .facts import Facts, build_facts, check_evidence, check_numbers
+from .clients import make_chat_client, run_options
+from .facts import (
+    Facts,
+    build_facts,
+    check_evidence,
+    check_names,
+    check_numbers,
+    public_event,
+)
 from .memory import CircuitBreaker, MemoryStore
 from .models import (
     Insight,
@@ -37,7 +44,7 @@ from .recap import write_recap
 
 ON_AIR_IMPORTANCE = 0.6
 MAX_NARRATION_ATTEMPTS = 2
-MAX_OVERLAY_CHARS = 280
+MAX_OVERLAY_CHARS = 220
 
 
 # ---------- messages between executors ----------
@@ -170,7 +177,7 @@ class AnalystExecutor(Executor):
 
     async def _analyse(self, job: Job) -> Analysis:
         payload: dict[str, Any] = {
-            "event": job.req.event,
+            "event": public_event(job.req.event),
             "facts": job.facts,
             "recent_insights": job.recent,
         }
@@ -180,7 +187,7 @@ class AnalystExecutor(Executor):
                 payload["feedback"] = issues
             try:
                 r = await self.agent.run(
-                    json.dumps(payload), options={"response_format": Insight}
+                    json.dumps(payload), options=run_options(Insight)
                 )
             except Exception as e:  # noqa: BLE001 - any model or network failure falls back
                 self.breaker.failure()
@@ -233,7 +240,7 @@ class NarratorExecutor(Executor):
     ) -> str | None:
         payload: dict[str, Any] = {
             "insight": a.insight.model_dump(),
-            "event": a.job.req.event,
+            "event": public_event(a.job.req.event),
             "segment": seg.model_dump(),
             "teams": {k: v.model_dump() for k, v in a.job.req.teams.items()},
         }
@@ -241,7 +248,7 @@ class NarratorExecutor(Executor):
             payload["feedback"] = feedback
         try:
             r = await self.agent.run(
-                json.dumps(payload), options={"response_format": NarrationOut}
+                json.dumps(payload), options=run_options(NarrationOut)
             )
         except Exception:  # noqa: BLE001 - any model failure falls back
             self.breaker.failure()
@@ -308,7 +315,9 @@ class FactCheckerExecutor(Executor):
             elif not draft.text:
                 draft.issues = ["empty narration"]
             else:
-                draft.issues = check_numbers(draft.text, facts)
+                draft.issues = check_numbers(draft.text, facts) + check_names(
+                    draft.text, d.analysed.job.req.event
+                )
                 if len(draft.text) > MAX_OVERLAY_CHARS:
                     draft.issues.append(
                         f"too long for an overlay ({len(draft.text)} chars)"
@@ -432,10 +441,10 @@ class InsightsEngine:
     def __init__(
         self, client: Any | None = None, budget_s: float | None = None
     ) -> None:
-        self.client = client if client is not None else make_chat_client()
-        self.analyst = make_analyst(self.client)
-        self.narrator = make_narrator(self.client)
-        self.recap_editor = make_recap_editor(self.client)
+        # Each role can run on its own model (OPENAI_MODEL_<ROLE>); tests pass one client.
+        self.analyst = make_analyst(client or make_chat_client("analyst"))
+        self.narrator = make_narrator(client or make_chat_client("narrator"))
+        self.recap_editor = make_recap_editor(client or make_chat_client("recap"))
         self.memory = MemoryStore()
         self.breaker = CircuitBreaker()
         self.analyses: TTLCache[Analysis] = TTLCache()
@@ -443,7 +452,7 @@ class InsightsEngine:
         self.budget_s = (
             budget_s
             if budget_s is not None
-            else float(os.getenv("MOMENT_BUDGET_S", "2.5"))
+            else float(os.getenv("MOMENT_BUDGET_S", "4"))
         )
 
     def build(self):

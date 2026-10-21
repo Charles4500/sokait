@@ -106,8 +106,10 @@ def _narrate(p: dict[str, Any]) -> str:
     )
     actor = p["event"].get("player", "")
     if seg["persona"] == "analyst":
-        return f"{ins['claim']} {stat} {value}."
+        return f"{actor}: {ins['claim']} {stat} {value}."
     if seg["persona"] == "player":
         focus = seg.get("favourite_player") or actor
-        return f"Eyes on {focus}: {ins['claim'].lower()}"
+        if focus == actor:
+            return f"Eyes on {focus}: {ins['claim'].lower()}"
+        return f"Eyes on {focus} as {actor} acts: {ins['claim'].lower()}"
     return f"{actor}! {ins['claim']}"
