@@ -64,6 +64,19 @@ Without any model credentials the agent service uses its offline, rule-based cli
 | `MATCH_SEED`, `MATCH_TICK_MS`               | web app | Seed and pace of the shared match                     |
 | `FOUNDRY_PROJECT_ENDPOINT`, `FOUNDRY_MODEL` | agents  | Microsoft Foundry model deployment                    |
 
+## PitchPulse Listen (audio mode)
+
+Open `/listen` on a phone with headphones. It is built for blind and low-vision fans:
+spatial sound places the ball around you (your club always attacks to your right),
+earcons mark passes, shots, tackles and goals, AI commentary explains key moments, and
+you can ask questions out loud. Common questions (score, time, where is the ball, how is
+a player doing) are answered on the device; open questions go to the Match Q&A agent.
+
+Speech uses the browser's built-in voices. Microsoft Edge has natural voices on every
+system. On Linux, Firefox uses the system speech engine; Chrome needs to be started with
+`--enable-speech-dispatcher`. Screen-reader users can switch commentary to their own
+screen reader under Personalise.
+
 ## Tests
 
 ```sh
