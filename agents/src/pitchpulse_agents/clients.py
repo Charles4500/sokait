@@ -98,9 +98,12 @@ def available_models(role: str | None) -> list[tuple[str, str]]:
 
 
 def rate_limit_wait(error: BaseException) -> float | None:
-    """Seconds to rest a model if `error` is a rate limit (HTTP 429), else None."""
+    """Seconds to rest a model if `error` is a rate limit (HTTP 429) or the model is
+    overloaded (HTTP 503), else None."""
     chain: BaseException | None = error
     while chain is not None:
+        if getattr(chain, "status_code", None) == 503:
+            return 30.0
         if getattr(chain, "status_code", None) == 429 or "429" in str(chain)[:200]:
             text = str(chain)
             m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", text)

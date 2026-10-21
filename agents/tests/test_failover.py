@@ -28,6 +28,11 @@ def test_wait_is_read_from_the_provider_message():
     gemini = "Error code: 429 - [{'error': {'details': [{'retryDelay': '37s'}]}}]"
     assert rate_limit_wait(RateLimited(gemini)) == 37.0
 
+    class Overloaded(Exception):
+        status_code = 503
+
+    assert rate_limit_wait(Overloaded("high demand")) == 30.0
+
 
 def test_backup_provider_joins_only_with_a_key(monkeypatch):
     chain = "openai/gpt-oss-120b,gemini:gemini-3.5-flash"
