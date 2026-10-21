@@ -42,7 +42,7 @@ export function MatchVideo({
   const [heatTeam, setHeatTeam] = useState<TeamId>(mine ?? "home");
 
   return (
-    <section className="flex w-full bg-[radial-gradient(ellipse_at_center,oklch(0.32_0.07_150),oklch(0.2_0.04_160))] sm:aspect-video sm:max-h-[70vh] flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
+    <section className="flex w-full bg-[radial-gradient(ellipse_at_center,oklch(0.32_0.07_150),oklch(0.2_0.04_160))] sm:aspect-video sm:max-h-[70vh] flex-col overflow-hidden rounded-2xl in-[:fullscreen]:flex-1 sm:in-[:fullscreen]:aspect-auto sm:in-[:fullscreen]:max-h-none">
       <div className="relative aspect-[111/80] min-h-0 sm:aspect-auto sm:flex-1">
         <TacticalPitch
           events={events}
