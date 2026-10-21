@@ -1,4 +1,4 @@
-import type { MatchEvent, TeamId, computeStats, playerStats } from "@/match/engine";
+import type { MatchEvent, Player, TeamId, computeStats, playerStats } from "@/match/engine";
 import type { Verification } from "@/insights/agents.functions";
 
 export type Mode = "analyst" | "casual" | "player";
@@ -33,6 +33,7 @@ export interface OnAir {
   text: string;
   ai: boolean;
   team: TeamId;
+  player: Player;
   minute: number;
   label: string;
   /** How long a broadcast would keep this on screen. */

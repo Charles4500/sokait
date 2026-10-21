@@ -1,0 +1,1685 @@
+[
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:7",
+  "minute": 3,
+  "event": {
+   "id": 7,
+   "minute": 3,
+   "second": 41,
+   "zone": "mid",
+   "type": "pass",
+   "team": "away",
+   "player": "Eli Mensah",
+   "target": "Max Ferro",
+   "passDistance": 33,
+   "passAccurate": true,
+   "passDifficulty": 8.1,
+   "ballSpeed": 66,
+   "importance": 0.6,
+   "label": "Eli Mensah → Max Ferro (33m)",
+   "x": 38.7,
+   "y": 54.1,
+   "toX": 61,
+   "toY": 29.7,
+   "runSpeed": 32.7,
+   "where": "in midfield, left side"
+  },
+  "score": {
+   "home": 0,
+   "away": 0
+  },
+  "stats": {
+   "possession": {
+    "home": 67,
+    "away": 33
+   },
+   "passes": {
+    "home": 2,
+    "away": 1
+   },
+   "passAcc": {
+    "home": 0,
+    "away": 100
+   },
+   "xg": {
+    "home": 0,
+    "away": 0.1
+   },
+   "shots": {
+    "home": 0,
+    "away": 1
+   },
+   "pressure": {
+    "home": 0,
+    "away": 1
+   },
+   "chaos": 43,
+   "control": 57,
+   "momentum": -1.1500000000000001,
+   "topShotSpeed": 110,
+   "avgPassDifficulty": 6.5,
+   "winProb": {
+    "home": 42,
+    "away": 32,
+    "draw": 26
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.1/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:9",
+  "minute": 5,
+  "event": {
+   "id": 9,
+   "minute": 5,
+   "second": 0,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Nico Vargas",
+   "target": "Ade Okafor",
+   "passDistance": 43,
+   "passAccurate": true,
+   "passDifficulty": 8.7,
+   "ballSpeed": 40,
+   "importance": 0.6,
+   "label": "Nico Vargas → Ade Okafor (43m)",
+   "x": 58.2,
+   "y": 24.9,
+   "toX": 28.7,
+   "toY": 56.2,
+   "runSpeed": 19.5,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 0
+  },
+  "stats": {
+   "possession": {
+    "home": 75,
+    "away": 25
+   },
+   "passes": {
+    "home": 3,
+    "away": 1
+   },
+   "passAcc": {
+    "home": 33,
+    "away": 100
+   },
+   "xg": {
+    "home": 0,
+    "away": 0.1
+   },
+   "shots": {
+    "home": 0,
+    "away": 1
+   },
+   "pressure": {
+    "home": 0,
+    "away": 1
+   },
+   "chaos": 44,
+   "control": 56,
+   "momentum": 0.34999999999999976,
+   "topShotSpeed": 110,
+   "avgPassDifficulty": 7.1,
+   "winProb": {
+    "home": 42,
+    "away": 32,
+    "draw": 26
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.7/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:12",
+  "minute": 6,
+  "event": {
+   "id": 12,
+   "minute": 6,
+   "second": 24,
+   "zone": "att",
+   "type": "goal",
+   "team": "away",
+   "player": "Theo Quinn",
+   "xg": 0.41,
+   "ballSpeed": 92,
+   "importance": 1,
+   "label": "GOAL! Theo Quinn (92 km/h)",
+   "x": 12.3,
+   "y": 32.3,
+   "toX": 0,
+   "toY": 32.5,
+   "runSpeed": 16.9,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 67,
+    "away": 33
+   },
+   "passes": {
+    "home": 4,
+    "away": 2
+   },
+   "passAcc": {
+    "home": 25,
+    "away": 100
+   },
+   "xg": {
+    "home": 0,
+    "away": 0.51
+   },
+   "shots": {
+    "home": 0,
+    "away": 2
+   },
+   "pressure": {
+    "home": 0,
+    "away": 1
+   },
+   "chaos": 42,
+   "control": 58,
+   "momentum": -0.9500000000000003,
+   "topShotSpeed": 110,
+   "avgPassDifficulty": 6.5,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Mersey Athletic convert a 0.41 xG chance — the reward for sustained territorial pressure."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:18",
+  "minute": 9,
+  "event": {
+   "id": 18,
+   "minute": 9,
+   "second": 5,
+   "zone": "mid",
+   "type": "pass",
+   "team": "away",
+   "player": "Dario Lusk",
+   "target": "Rafa Sol",
+   "passDistance": 45,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 69,
+   "importance": 0.6,
+   "label": "Dario Lusk → Rafa Sol (45m)",
+   "x": 35.3,
+   "y": 44.9,
+   "toX": 1,
+   "toY": 18.4,
+   "runSpeed": 26.2,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 56,
+    "away": 44
+   },
+   "passes": {
+    "home": 5,
+    "away": 4
+   },
+   "passAcc": {
+    "home": 20,
+    "away": 75
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 0.51
+   },
+   "shots": {
+    "home": 1,
+    "away": 2
+   },
+   "pressure": {
+    "home": 0,
+    "away": 1
+   },
+   "chaos": 44,
+   "control": 56,
+   "momentum": -2.4000000000000004,
+   "topShotSpeed": 110,
+   "avgPassDifficulty": 7.6,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:26",
+  "minute": 14,
+  "event": {
+   "id": 26,
+   "minute": 14,
+   "second": 7,
+   "zone": "att",
+   "type": "shot",
+   "team": "away",
+   "player": "Theo Quinn",
+   "xg": 0.37,
+   "ballSpeed": 115,
+   "importance": 0.7,
+   "label": "Theo Quinn shot · xG 0.37",
+   "x": 12.9,
+   "y": 39.4,
+   "toX": 0,
+   "toY": 30,
+   "runSpeed": 21,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 50,
+    "away": 50
+   },
+   "passes": {
+    "home": 5,
+    "away": 5
+   },
+   "passAcc": {
+    "home": 20,
+    "away": 80
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 0.93
+   },
+   "shots": {
+    "home": 1,
+    "away": 4
+   },
+   "pressure": {
+    "home": 3,
+    "away": 1
+   },
+   "chaos": 30,
+   "control": 70,
+   "momentum": -2.4000000000000004,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 7.3,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "High-value chance (0.37 xG). Mersey Athletic are breaking lines in the final third."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:39",
+  "minute": 20,
+  "event": {
+   "id": 39,
+   "minute": 20,
+   "second": 43,
+   "zone": "att",
+   "type": "pass",
+   "team": "away",
+   "player": "Ollie Dunn",
+   "target": "Theo Quinn",
+   "passDistance": 23,
+   "passAccurate": true,
+   "passDifficulty": 8.8,
+   "ballSpeed": 75,
+   "importance": 0.6,
+   "label": "Ollie Dunn → Theo Quinn (23m)",
+   "x": 28.5,
+   "y": 27.8,
+   "toX": 47.4,
+   "toY": 41,
+   "runSpeed": 23.6,
+   "where": "in the attacking third, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 56,
+    "away": 44
+   },
+   "passes": {
+    "home": 10,
+    "away": 8
+   },
+   "passAcc": {
+    "home": 40,
+    "away": 63
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 0.93
+   },
+   "shots": {
+    "home": 1,
+    "away": 4
+   },
+   "pressure": {
+    "home": 5,
+    "away": 3
+   },
+   "chaos": 25,
+   "control": 75,
+   "momentum": 0.15000000000000013,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.9,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.8/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:41",
+  "minute": 21,
+  "event": {
+   "id": 41,
+   "minute": 21,
+   "second": 35,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Jonah Pike",
+   "target": "Tom Reyes",
+   "passDistance": 44,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 66,
+   "importance": 0.6,
+   "label": "Jonah Pike → Tom Reyes (44m)",
+   "x": 60.8,
+   "y": 39.9,
+   "toX": 85.8,
+   "toY": 67,
+   "runSpeed": 29,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 55,
+    "away": 45
+   },
+   "passes": {
+    "home": 11,
+    "away": 9
+   },
+   "passAcc": {
+    "home": 45,
+    "away": 56
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 0.93
+   },
+   "shots": {
+    "home": 1,
+    "away": 4
+   },
+   "pressure": {
+    "home": 5,
+    "away": 3
+   },
+   "chaos": 30,
+   "control": 70,
+   "momentum": -0.5,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:47",
+  "minute": 24,
+  "event": {
+   "id": 47,
+   "minute": 24,
+   "second": 24,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Nico Vargas",
+   "target": "Sami Hale",
+   "passDistance": 34,
+   "passAccurate": true,
+   "passDifficulty": 8.4,
+   "ballSpeed": 54,
+   "importance": 0.6,
+   "label": "Nico Vargas → Sami Hale (34m)",
+   "x": 66.1,
+   "y": 28.6,
+   "toX": 33,
+   "toY": 20.8,
+   "runSpeed": 28.3,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 1
+  },
+  "stats": {
+   "possession": {
+    "home": 58,
+    "away": 42
+   },
+   "passes": {
+    "home": 14,
+    "away": 10
+   },
+   "passAcc": {
+    "home": 57,
+    "away": 50
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 0.93
+   },
+   "shots": {
+    "home": 1,
+    "away": 4
+   },
+   "pressure": {
+    "home": 5,
+    "away": 4
+   },
+   "chaos": 35,
+   "control": 65,
+   "momentum": 0.8999999999999997,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 20,
+    "away": 52,
+    "draw": 28
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.4/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:51",
+  "minute": 26,
+  "event": {
+   "id": 51,
+   "minute": 26,
+   "second": 20,
+   "zone": "att",
+   "type": "goal",
+   "team": "away",
+   "player": "Eli Mensah",
+   "xg": 0.56,
+   "ballSpeed": 91,
+   "importance": 1,
+   "label": "GOAL! Eli Mensah (91 km/h)",
+   "x": 6.3,
+   "y": 34.9,
+   "toX": 0,
+   "toY": 32.6,
+   "runSpeed": 25,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 58,
+    "away": 42
+   },
+   "passes": {
+    "home": 14,
+    "away": 10
+   },
+   "passAcc": {
+    "home": 57,
+    "away": 50
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 1,
+    "away": 5
+   },
+   "pressure": {
+    "home": 6,
+    "away": 5
+   },
+   "chaos": 25,
+   "control": 75,
+   "momentum": -1.0000000000000004,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Mersey Athletic convert a 0.56 xG chance — the reward for sustained territorial pressure."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:55",
+  "minute": 28,
+  "event": {
+   "id": 55,
+   "minute": 28,
+   "second": 21,
+   "zone": "att",
+   "type": "pass",
+   "team": "home",
+   "player": "Tom Reyes",
+   "target": "Ade Okafor",
+   "passDistance": 48,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 66,
+   "importance": 0.6,
+   "label": "Tom Reyes → Ade Okafor (48m)",
+   "x": 71.2,
+   "y": 38.3,
+   "toX": 104,
+   "toY": 23.9,
+   "runSpeed": 25.9,
+   "where": "in the attacking third, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 60,
+    "away": 40
+   },
+   "passes": {
+    "home": 15,
+    "away": 10
+   },
+   "passAcc": {
+    "home": 60,
+    "away": 50
+   },
+   "xg": {
+    "home": 0.06,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 1,
+    "away": 5
+   },
+   "pressure": {
+    "home": 6,
+    "away": 7
+   },
+   "chaos": 25,
+   "control": 75,
+   "momentum": -0.5500000000000003,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.9,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:70",
+  "minute": 34,
+  "event": {
+   "id": 70,
+   "minute": 34,
+   "second": 19,
+   "zone": "att",
+   "type": "pass",
+   "team": "away",
+   "player": "Ollie Dunn",
+   "target": "Theo Quinn",
+   "passDistance": 23,
+   "passAccurate": true,
+   "passDifficulty": 8.5,
+   "ballSpeed": 71,
+   "importance": 0.6,
+   "label": "Ollie Dunn → Theo Quinn (23m)",
+   "x": 34.4,
+   "y": 34.2,
+   "toX": 52.6,
+   "toY": 20.1,
+   "runSpeed": 32,
+   "where": "in the attacking third, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 62,
+    "away": 38
+   },
+   "passes": {
+    "home": 21,
+    "away": 13
+   },
+   "passAcc": {
+    "home": 52,
+    "away": 54
+   },
+   "xg": {
+    "home": 0.28,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 2,
+    "away": 5
+   },
+   "pressure": {
+    "home": 6,
+    "away": 10
+   },
+   "chaos": 35,
+   "control": 65,
+   "momentum": 0.14999999999999947,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.5/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:77",
+  "minute": 38,
+  "event": {
+   "id": 77,
+   "minute": 38,
+   "second": 28,
+   "zone": "mid",
+   "type": "pass",
+   "team": "away",
+   "player": "Theo Quinn",
+   "target": "Ollie Dunn",
+   "passDistance": 35,
+   "passAccurate": true,
+   "passDifficulty": 7.5,
+   "ballSpeed": 75,
+   "importance": 0.6,
+   "label": "Theo Quinn → Ollie Dunn (35m)",
+   "x": 48.6,
+   "y": 40.3,
+   "toX": 21.8,
+   "toY": 62.8,
+   "runSpeed": 27.8,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 55,
+    "away": 45
+   },
+   "passes": {
+    "home": 22,
+    "away": 18
+   },
+   "passAcc": {
+    "home": 50,
+    "away": 61
+   },
+   "xg": {
+    "home": 0.28,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 2,
+    "away": 5
+   },
+   "pressure": {
+    "home": 7,
+    "away": 10
+   },
+   "chaos": 40,
+   "control": 60,
+   "momentum": -1.45,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.6,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 7.5/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:80",
+  "minute": 39,
+  "event": {
+   "id": 80,
+   "minute": 39,
+   "second": 43,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Kai Brennan",
+   "target": "Nico Vargas",
+   "passDistance": 36,
+   "passAccurate": true,
+   "passDifficulty": 8.5,
+   "ballSpeed": 54,
+   "importance": 0.6,
+   "label": "Kai Brennan → Nico Vargas (36m)",
+   "x": 55.5,
+   "y": 27,
+   "toX": 29.2,
+   "toY": 2.4,
+   "runSpeed": 18.4,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 55,
+    "away": 45
+   },
+   "passes": {
+    "home": 23,
+    "away": 19
+   },
+   "passAcc": {
+    "home": 52,
+    "away": 58
+   },
+   "xg": {
+    "home": 0.31,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 3,
+    "away": 5
+   },
+   "pressure": {
+    "home": 7,
+    "away": 10
+   },
+   "chaos": 40,
+   "control": 60,
+   "momentum": -1.0499999999999996,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.6,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.5/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:90",
+  "minute": 44,
+  "event": {
+   "id": 90,
+   "minute": 44,
+   "second": 50,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Nico Vargas",
+   "target": "Tom Reyes",
+   "passDistance": 36,
+   "passAccurate": true,
+   "passDifficulty": 8.6,
+   "ballSpeed": 53,
+   "importance": 0.6,
+   "label": "Nico Vargas → Tom Reyes (36m)",
+   "x": 68.7,
+   "y": 41.7,
+   "toX": 102.7,
+   "toY": 30,
+   "runSpeed": 15.3,
+   "where": "in midfield, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 55,
+    "away": 45
+   },
+   "passes": {
+    "home": 26,
+    "away": 21
+   },
+   "passAcc": {
+    "home": 50,
+    "away": 57
+   },
+   "xg": {
+    "home": 0.31,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 3,
+    "away": 5
+   },
+   "pressure": {
+    "home": 9,
+    "away": 10
+   },
+   "chaos": 45,
+   "control": 55,
+   "momentum": 2.0500000000000007,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.7,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8.6/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:109",
+  "minute": 55,
+  "event": {
+   "id": 109,
+   "minute": 55,
+   "second": 25,
+   "zone": "att",
+   "type": "shot",
+   "team": "home",
+   "player": "Kai Brennan",
+   "xg": 0.46,
+   "ballSpeed": 88,
+   "importance": 0.7,
+   "label": "Kai Brennan shot · xG 0.46",
+   "x": 94.6,
+   "y": 34.5,
+   "toX": 105,
+   "toY": 32,
+   "runSpeed": 18.4,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 50,
+    "away": 50
+   },
+   "passes": {
+    "home": 29,
+    "away": 29
+   },
+   "passAcc": {
+    "home": 48,
+    "away": 52
+   },
+   "xg": {
+    "home": 0.77,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 4,
+    "away": 5
+   },
+   "pressure": {
+    "home": 10,
+    "away": 10
+   },
+   "chaos": 55,
+   "control": 45,
+   "momentum": -2.3499999999999996,
+   "topShotSpeed": 115,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "High-value chance (0.46 xG). Thames Rovers are breaking lines in the final third."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:125",
+  "minute": 64,
+  "event": {
+   "id": 125,
+   "minute": 64,
+   "second": 15,
+   "zone": "att",
+   "type": "shot",
+   "team": "home",
+   "player": "Kai Brennan",
+   "xg": 0.41,
+   "ballSpeed": 118,
+   "importance": 0.7,
+   "label": "Kai Brennan shot · xG 0.41",
+   "x": 93,
+   "y": 30.8,
+   "toX": 105,
+   "toY": 35.5,
+   "runSpeed": 15.6,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 48,
+    "away": 52
+   },
+   "passes": {
+    "home": 31,
+    "away": 33
+   },
+   "passAcc": {
+    "home": 45,
+    "away": 52
+   },
+   "xg": {
+    "home": 1.18,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 5,
+    "away": 5
+   },
+   "pressure": {
+    "home": 12,
+    "away": 13
+   },
+   "chaos": 40,
+   "control": 60,
+   "momentum": -0.6999999999999995,
+   "topShotSpeed": 118,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "High-value chance (0.41 xG). Thames Rovers are breaking lines in the final third."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:126",
+  "minute": 64,
+  "event": {
+   "id": 126,
+   "minute": 64,
+   "second": 44,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Kai Brennan",
+   "target": "Tom Reyes",
+   "passDistance": 37,
+   "passAccurate": true,
+   "passDifficulty": 8,
+   "ballSpeed": 43,
+   "importance": 0.6,
+   "label": "Kai Brennan → Tom Reyes (37m)",
+   "x": 48.2,
+   "y": 46.7,
+   "toX": 78.1,
+   "toY": 25,
+   "runSpeed": 24.2,
+   "where": "in their own half, right side"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 49,
+    "away": 51
+   },
+   "passes": {
+    "home": 32,
+    "away": 33
+   },
+   "passAcc": {
+    "home": 47,
+    "away": 52
+   },
+   "xg": {
+    "home": 1.18,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 5,
+    "away": 5
+   },
+   "pressure": {
+    "home": 12,
+    "away": 13
+   },
+   "chaos": 35,
+   "control": 65,
+   "momentum": 0.6500000000000004,
+   "topShotSpeed": 118,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 8/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:129",
+  "minute": 66,
+  "event": {
+   "id": 129,
+   "minute": 66,
+   "second": 21,
+   "zone": "att",
+   "type": "pass",
+   "team": "home",
+   "player": "Kai Brennan",
+   "target": "Sami Hale",
+   "passDistance": 30,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 51,
+   "importance": 0.6,
+   "label": "Kai Brennan → Sami Hale (30m)",
+   "x": 76.7,
+   "y": 53.9,
+   "toX": 104,
+   "toY": 57.8,
+   "runSpeed": 20.5,
+   "where": "in the attacking third, right side"
+  },
+  "score": {
+   "home": 0,
+   "away": 2
+  },
+  "stats": {
+   "possession": {
+    "home": 51,
+    "away": 49
+   },
+   "passes": {
+    "home": 34,
+    "away": 33
+   },
+   "passAcc": {
+    "home": 50,
+    "away": 52
+   },
+   "xg": {
+    "home": 1.2,
+    "away": 1.49
+   },
+   "shots": {
+    "home": 6,
+    "away": 5
+   },
+   "pressure": {
+    "home": 12,
+    "away": 13
+   },
+   "chaos": 25,
+   "control": 75,
+   "momentum": 2.75,
+   "topShotSpeed": 124,
+   "avgPassDifficulty": 6.8,
+   "winProb": {
+    "home": 5,
+    "away": 72,
+    "draw": 23
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:141",
+  "minute": 72,
+  "event": {
+   "id": 141,
+   "minute": 72,
+   "second": 16,
+   "zone": "att",
+   "type": "goal",
+   "team": "away",
+   "player": "Theo Quinn",
+   "xg": 0.32,
+   "ballSpeed": 99,
+   "importance": 1,
+   "label": "GOAL! Theo Quinn (99 km/h)",
+   "x": 15.9,
+   "y": 35.7,
+   "toX": 0,
+   "toY": 36.5,
+   "runSpeed": 15.9,
+   "where": "in the box, centrally"
+  },
+  "score": {
+   "home": 0,
+   "away": 3
+  },
+  "stats": {
+   "possession": {
+    "home": 52,
+    "away": 48
+   },
+   "passes": {
+    "home": 38,
+    "away": 35
+   },
+   "passAcc": {
+    "home": 50,
+    "away": 49
+   },
+   "xg": {
+    "home": 1.3,
+    "away": 1.81
+   },
+   "shots": {
+    "home": 7,
+    "away": 6
+   },
+   "pressure": {
+    "home": 12,
+    "away": 16
+   },
+   "chaos": 30,
+   "control": 70,
+   "momentum": 2.5500000000000016,
+   "topShotSpeed": 124,
+   "avgPassDifficulty": 6.9,
+   "winProb": {
+    "home": 5,
+    "away": 90,
+    "draw": 5
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Mersey Athletic convert a 0.32 xG chance — the reward for sustained territorial pressure."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:157",
+  "minute": 79,
+  "event": {
+   "id": 157,
+   "minute": 79,
+   "second": 46,
+   "zone": "def",
+   "type": "pass",
+   "team": "home",
+   "player": "Ade Okafor",
+   "target": "Kai Brennan",
+   "passDistance": 42,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 52,
+   "importance": 0.6,
+   "label": "Ade Okafor → Kai Brennan (42m)",
+   "x": 28.6,
+   "y": 54.3,
+   "toX": 60.6,
+   "toY": 27.1,
+   "runSpeed": 32.1,
+   "where": "deep in their own half, right side"
+  },
+  "score": {
+   "home": 0,
+   "away": 3
+  },
+  "stats": {
+   "possession": {
+    "home": 51,
+    "away": 49
+   },
+   "passes": {
+    "home": 41,
+    "away": 40
+   },
+   "passAcc": {
+    "home": 54,
+    "away": 50
+   },
+   "xg": {
+    "home": 1.55,
+    "away": 1.81
+   },
+   "shots": {
+    "home": 8,
+    "away": 6
+   },
+   "pressure": {
+    "home": 12,
+    "away": 19
+   },
+   "chaos": 25,
+   "control": 75,
+   "momentum": -4.700000000000001,
+   "topShotSpeed": 124,
+   "avgPassDifficulty": 6.7,
+   "winProb": {
+    "home": 5,
+    "away": 90,
+    "draw": 5
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ },
+ {
+  "match_id": "eval-3",
+  "moment_id": "1:163",
+  "minute": 82,
+  "event": {
+   "id": 163,
+   "minute": 82,
+   "second": 29,
+   "zone": "mid",
+   "type": "pass",
+   "team": "home",
+   "player": "Sami Hale",
+   "target": "Jonah Pike",
+   "passDistance": 47,
+   "passAccurate": true,
+   "passDifficulty": 10,
+   "ballSpeed": 73,
+   "importance": 0.6,
+   "label": "Sami Hale → Jonah Pike (47m)",
+   "x": 62.2,
+   "y": 52.6,
+   "toX": 104,
+   "toY": 67,
+   "runSpeed": 21.1,
+   "where": "in midfield, right side"
+  },
+  "score": {
+   "home": 0,
+   "away": 3
+  },
+  "stats": {
+   "possession": {
+    "home": 52,
+    "away": 48
+   },
+   "passes": {
+    "home": 45,
+    "away": 41
+   },
+   "passAcc": {
+    "home": 56,
+    "away": 49
+   },
+   "xg": {
+    "home": 1.55,
+    "away": 1.81
+   },
+   "shots": {
+    "home": 8,
+    "away": 6
+   },
+   "pressure": {
+    "home": 12,
+    "away": 19
+   },
+   "chaos": 30,
+   "control": 70,
+   "momentum": -1.4000000000000008,
+   "topShotSpeed": 124,
+   "avgPassDifficulty": 6.7,
+   "winProb": {
+    "home": 5,
+    "away": 90,
+    "draw": 5
+   }
+  },
+  "teams": {
+   "home": {
+    "name": "Thames Rovers",
+    "short": "THR",
+    "color": "var(--team-home)"
+   },
+   "away": {
+    "name": "Mersey Athletic",
+    "short": "MER",
+    "color": "var(--team-away)"
+   }
+  },
+  "segments": [],
+  "fallback_text": "Difficulty 10/10 pass — elite vision that bypasses the press."
+ }
+]

@@ -8,6 +8,7 @@ import {
   explain,
   playerTag,
   type MatchEvent,
+  type Player,
 } from "@/match/engine";
 import type { MatchView } from "@/match/use-match-stream";
 import {
@@ -40,7 +41,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
 
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [onAir, setOnAir] = useState<OnAir | null>(null);
-  const [tag, setTag] = useState<{ id: number; text: string } | null>(null);
+  const [tag, setTag] = useState<{ id: number; text: string; player: Player } | null>(null);
   const [dual, setDual] = useState<Dual | null>(null);
   const [lastAgents, setLastAgents] = useState<AgentOverlay | null>(null);
   const [recap, setRecap] = useState("");
@@ -104,7 +105,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
     const e = state.events[state.events.length - 1];
     if (!e) return;
     const t = playerTag(state.events, e);
-    if (t) setTag({ id: e.id, text: t });
+    if (t) setTag({ id: e.id, text: t, player: e.player });
     if (!isKeyMoment(e)) return;
 
     const why = explain(e, stats);
@@ -115,6 +116,7 @@ export function useMatchInsights(state: MatchView, gen: number, matchId: string,
       text: why,
       ai: false,
       team: e.team,
+      player: e.player,
       minute: e.minute,
       label: e.label,
       durationMs: e.type === "goal" ? 8000 : 4500,

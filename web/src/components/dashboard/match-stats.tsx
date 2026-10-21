@@ -1,5 +1,6 @@
 import { Activity, Gps, Speedometer, TrendUp } from "iconsax-reactjs";
 import { TEAMS, type Player } from "@/match/engine";
+import { PlayerAvatar } from "./avatars";
 import type { MatchStats as Stats } from "./types";
 
 /** MVP and headline numbers, computed by the match engine (not AI). */
@@ -52,11 +53,8 @@ export function MatchStats({
           <div className="text-[11px] text-muted-foreground">
             {TEAMS[star.player.team].name} · #{star.player.num} {star.player.pos}
           </div>
-          <div
-            aria-hidden
-            className={`absolute right-3 top-3 grid h-14 w-14 place-items-center rounded-full font-display text-2xl font-bold ring-2 ring-foreground/80 ${star.player.team === "home" ? "bg-team-home" : "bg-team-away"}`}
-          >
-            {star.player.num}
+          <div className="absolute right-3 top-3">
+            <PlayerAvatar player={star.player} size={56} />
           </div>
           <div className="absolute bottom-3 right-3 rounded-lg bg-secondary px-2 py-1 text-center text-[10px] text-muted-foreground">
             Score<div className="font-display text-base text-foreground">{star.score}</div>

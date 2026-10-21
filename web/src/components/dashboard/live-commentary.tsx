@@ -8,7 +8,7 @@ import {
   MessageHeader,
 } from "@/components/ui/message";
 import { VerifiedBadge } from "./agent-trace";
-import { Crest } from "./crest";
+import { PlayerAvatar } from "./avatars";
 import type { FeedItem } from "./types";
 
 /** Key moments and why they matter, beside the video like a live chat. */
@@ -32,7 +32,7 @@ export function LiveCommentary({ feed }: { feed: FeedItem[] }) {
             {feed.map(({ e, why, ai, verification }) => (
               <Message key={e.id} className="animate-slide-in">
                 <MessageAvatar className="self-start bg-transparent group-has-data-[slot=message-footer]/message:translate-y-0">
-                  <Crest team={e.team} size={28} />
+                  <PlayerAvatar player={e.player} size={30} />
                 </MessageAvatar>
                 <MessageContent className="gap-1">
                   <MessageHeader className="gap-1.5 px-0 text-foreground">

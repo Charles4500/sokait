@@ -1,5 +1,5 @@
 import { TEAMS } from "@/match/engine";
-import { Crest } from "./crest";
+import { ClubBadge } from "./avatars";
 import type { MatchStats } from "./types";
 
 export function WinProbability({ winProb }: { winProb: MatchStats["winProb"] }) {
@@ -11,7 +11,7 @@ export function WinProbability({ winProb }: { winProb: MatchStats["winProb"] }) 
       </div>
       {(["home", "away"] as const).map((t) => (
         <div key={t} className="mt-2 flex items-center gap-3 text-xs">
-          <Crest team={t} size={24} />
+          <ClubBadge team={t} size={24} />
           <span className="w-28 truncate">{TEAMS[t].name}</span>
           <div className="h-1 flex-1 rounded-full bg-border">
             <div
