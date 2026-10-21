@@ -63,3 +63,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t pitchpulse-agents:ci agents
+
+  web-image:
+    name: Web app image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t pitchpulse-web:ci web
