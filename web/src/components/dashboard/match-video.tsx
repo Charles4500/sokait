@@ -44,30 +44,32 @@ export function MatchVideo({
           heatTeam={heatTeam}
         />
 
-        {/* Scorebug */}
-        <div className="absolute left-4 top-4 flex items-center gap-3 rounded-full glass px-4 py-2 font-display">
-          <Crest team="home" size={26} /> {prefs.favClub === "home" && "♥ "}
-          {TEAMS.home.short}{" "}
-          <span className="text-xl">
-            {score.home} - {score.away}
-          </span>{" "}
-          {TEAMS.away.short}
-          {prefs.favClub === "away" && " ♥"} <Crest team="away" size={26} />
-          <span className="ml-2 rounded-md bg-win/20 px-2 text-xs text-win">
-            {status === "finished" ? "FT" : `${minute}'`}
-          </span>
-        </div>
-
-        {/* Threshold-triggered player tag (speed / distance) */}
-        {tag && (
-          <div
-            key={tag.id}
-            className="absolute left-1/2 top-16 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
-          >
-            <Flash className="mr-1 inline h-3.5 w-3.5" />
-            {tag.text}
+        {/* Top bar: scorebug, then the speed/distance tag beside it (never over the pitch) */}
+        <div
+          className={`absolute left-4 top-4 flex items-center gap-3 ${prefs.mode === "player" ? "right-60" : "right-4"}`}
+        >
+          <div className="flex shrink-0 items-center gap-3 rounded-full glass px-4 py-2 font-display">
+            <Crest team="home" size={26} /> {prefs.favClub === "home" && "♥ "}
+            {TEAMS.home.short}{" "}
+            <span className="text-xl">
+              {score.home} - {score.away}
+            </span>{" "}
+            {TEAMS.away.short}
+            {prefs.favClub === "away" && " ♥"} <Crest team="away" size={26} />
+            <span className="ml-2 rounded-md bg-win/20 px-2 text-xs text-win">
+              {status === "finished" ? "FT" : `${minute}'`}
+            </span>
           </div>
-        )}
+          {tag && (
+            <div
+              key={tag.id}
+              className="min-w-0 truncate rounded-full bg-primary px-4 py-1.5 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
+            >
+              <Flash className="mr-1 inline h-3.5 w-3.5" />
+              {tag.text}
+            </div>
+          )}
+        </div>
 
         {/* Player focus card */}
         {prefs.mode === "player" && (
