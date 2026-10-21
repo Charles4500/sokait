@@ -43,6 +43,7 @@ const DETAIL: { id: Detail; label: string; hint: string }[] = [
 /** PitchPulse Listen: follow the match by sound, in a sheet beside the dashboard.
  *  Listening carries on when the sheet is closed, like a radio. */
 export function ListenSheet({
+  defaultOpen = false,
   listen,
   score,
   status,
@@ -51,6 +52,8 @@ export function ListenSheet({
   settings,
   updateSettings,
 }: {
+  /** Open on arrival (the matchday page's Listen button). */
+  defaultOpen?: boolean;
   listen: ReturnType<typeof useListen>;
   score: Record<TeamId, number>;
   status: MatchStatus;
@@ -103,12 +106,12 @@ export function ListenSheet({
     status === "finished" ? "Full time" : status === "paused" ? "Paused" : `${listen.minute}'`;
 
   return (
-    <Sheet>
+    <Sheet defaultOpen={defaultOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <SheetTrigger className="relative flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm hover:bg-secondary data-[state=open]:bg-secondary">
+          <SheetTrigger className="relative flex h-10 items-center gap-2 rounded-full border border-border px-3 text-sm hover:bg-secondary data-[state=open]:bg-secondary sm:px-4">
             <Headphone variant="Bulk" className="h-4 w-4" aria-hidden />
-            Listen
+            <span className="sr-only sm:not-sr-only">Listen</span>
             {listen.started && (
               <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-live animate-live">
                 <span className="sr-only">(on)</span>

@@ -33,7 +33,7 @@ export function RecapPanel({
           {recap.loading ? "Writing…" : recap.text ? "Update recap" : "Write recap"}
         </button>
       </div>
-      <div className="mt-3 h-56 overflow-y-auto whitespace-pre-wrap rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">
+      <div className="mt-3 h-40 overflow-y-auto sm:h-56 whitespace-pre-wrap rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">
         {recap.text ||
           `The Recap Editor agent writes a ${MODE_LABEL[prefs.mode].toLowerCase()} recap in ${prefs.lang}, checked against the match data.`}
       </div>

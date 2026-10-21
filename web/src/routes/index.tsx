@@ -1,290 +1,283 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AgentTrace } from "@/components/dashboard/agent-trace";
-import { ComparePanel } from "@/components/dashboard/compare-panel";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { LiveCommentary } from "@/components/dashboard/live-commentary";
-import { MatchCentre } from "@/components/dashboard/match-centre";
-import { MatchStats } from "@/components/dashboard/match-stats";
-import { MatchTitleBar } from "@/components/dashboard/match-title-bar";
-import { MatchVideo } from "@/components/dashboard/match-video";
-import { RecapPanel } from "@/components/dashboard/recap-panel";
-import type { Prefs } from "@/components/dashboard/types";
-import { WinProbability } from "@/components/dashboard/win-probability";
-import { FIXTURES, fixtureById } from "@/match/engine";
-import { FixtureContext, fixtureInfo } from "@/match/fixture-context";
-import { LivePlaylist } from "@/components/dashboard/live-now";
-import { useMatchInsights } from "@/insights/use-match-insights";
-import { useMatchStream } from "@/match/use-match-stream";
-import { usePlayback } from "@/match/use-playback";
-import { MatchTimeline } from "@/components/dashboard/match-timeline";
-import { ShortcutsDialog } from "@/components/dashboard/shortcuts";
-import { useFlash, useShortcuts, type ShortcutAction } from "@/components/dashboard/use-shortcuts";
-import { MODE_LABEL, MODES } from "@/components/dashboard/types";
-import { speak } from "@/insights/speech";
-import { ListenSheet, type ListenSettings } from "@/listen/listen-sheet";
-import { useListen } from "@/listen/use-listen";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Headphones, Play } from "iconsax-reactjs";
+import { ClubBadge } from "@/components/dashboard/avatars";
+import { CLUBS } from "@/match/engine";
+import { followedClubs, useFollow, type Follow } from "@/match/follow";
+import { useMatchday, type LiveMatch, type UpcomingMatch } from "@/match/use-matchday";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PitchPulse | Live Match Insights" },
+      { title: "PitchPulse | Matchday" },
       {
         name: "description",
         content:
-          "Ingest, interpret, explain, render and personalise synthetic football events in real time.",
-      },
-      { property: "og:title", content: "PitchPulse | Live Match Insights" },
-      {
-        property: "og:description",
-        content:
-          "Explainable, personalised, multi-language match intelligence for studio and streaming.",
+          "Live synthetic football with explainable AI commentary: pick a match, follow your teams, listen or watch.",
       },
     ],
   }),
-  component: Dashboard,
+  component: Matchday,
 });
 
-const DEFAULT_LISTEN: ListenSettings = {
-  detail: "key",
-  rate: 1.1,
-  ballSound: true,
-  screenReader: false,
-};
-const LISTEN_KEY = "pitchpulse.listen.settings";
+const club = (id: string) => CLUBS.find((c) => c.id === id)!;
+const GOAL_FLASH_MS = 10000;
 
-const DEFAULT_PREFS: Prefs = {
-  mode: "casual",
-  lang: "English",
-  favClub: "thr",
-  favPlayer: "thr-10",
-  voice: false,
-  compare: false,
-};
-
-function Dashboard() {
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
-  const update = (patch: Partial<Prefs>) => setPrefs((p) => ({ ...p, ...patch }));
-
-  // Which of the matches playing right now this viewer is watching (?match= in the URL).
-  const [fixtureId, setFixtureId] = useState(FIXTURES[0]!.id);
+function Matchday() {
+  const { live, upcoming, goalAt } = useMatchday();
+  const { follow, update } = useFollow();
+  const followed = followedClubs(follow);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    setFixtureId(fixtureById(new URLSearchParams(window.location.search).get("match")).id);
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
   }, []);
-  const switchMatch = useCallback((id: string) => {
-    setFixtureId(id);
-    const url = new URL(window.location.href);
-    url.searchParams.set("match", id);
-    window.history.replaceState(null, "", url);
-  }, []);
-  const info = useMemo(() => fixtureInfo(fixtureById(fixtureId)), [fixtureId]);
-
-  // (a) INGEST: the chosen live match, streamed from the server.
-  const { state: live, status, gen, matchId, control } = useMatchStream(fixtureId);
-  const stream = `${matchId}#${gen}`;
-  // Listen (audio mode) always follows live, whatever the timeline shows.
-  const [listenSettings, setListenSettings] = useState<ListenSettings>(DEFAULT_LISTEN);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LISTEN_KEY);
-      if (saved) setListenSettings({ ...DEFAULT_LISTEN, ...JSON.parse(saved) });
-    } catch {
-      /* storage unavailable: defaults for this visit */
-    }
-  }, []);
-  const updateListen = useCallback((patch: Partial<ListenSettings>) => {
-    setListenSettings((s) => {
-      const next = { ...s, ...patch };
-      try {
-        localStorage.setItem(LISTEN_KEY, JSON.stringify(next));
-      } catch {
-        /* storage unavailable */
-      }
-      return next;
-    });
-  }, []);
-  const listen = useListen(
-    live,
-    status,
-    gen,
-    matchId,
-    {
-      ...listenSettings,
-      lang: prefs.lang,
-      favClub: prefs.favClub,
-      favPlayer: prefs.favPlayer,
-    },
-    info,
-  );
-
-  // What this viewer is watching: live, or a replay from earlier on the timeline.
-  const playback = usePlayback(live, stream);
-  const state = playback.view;
-  // (b)–(e) INTERPRET, EXPLAIN, RENDER, PERSONALISE.
-  const m = useMatchInsights(state, gen, matchId, prefs, info);
-
-  // Keyboard shortcuts, YouTube-style, with a brief flash showing what happened.
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const { flash, show } = useFlash();
-  const fmtDelta = (s: number) => `${s < 0 ? "−" : "+"}${Math.abs(s) / 60}:00`;
-  const run = useCallback(
-    (action: ShortcutAction) => {
-      const by = (delta: number) => {
-        playback.seek(Math.max(0, state.clock + delta));
-        show(fmtDelta(delta));
-      };
-      if (action.startsWith("jump")) {
-        const minute = Number(action.slice(4)) * 10;
-        playback.seek(minute * 60);
-        return show(`${minute}'`);
-      }
-      switch (action) {
-        case "fullscreen":
-          if (document.fullscreenElement) void document.exitFullscreen();
-          else void stageRef.current?.requestFullscreen();
-          return;
-        case "toggle":
-          playback.toggle();
-          return show(playback.playing ? "❚❚ Paused" : "▶ Playing");
-        case "back1":
-          return by(-60);
-        case "fwd1":
-          return by(60);
-        case "back5":
-          return by(-300);
-        case "fwd5":
-          return by(300);
-        case "start":
-          playback.seek(0);
-          return show("Kick-off");
-        case "live":
-          playback.goLive();
-          return show("● LIVE");
-        case "voice":
-          update({ voice: !prefs.voice });
-          if (!prefs.voice) void speak("Commentary on.", prefs.lang);
-          return show(prefs.voice ? "AI voice off" : "AI voice on");
-        case "compare":
-          update({ compare: !prefs.compare });
-          return show(prefs.compare ? "Compare off" : "Analyst vs Fan");
-        case "mode": {
-          const next = MODES[(MODES.indexOf(prefs.mode) + 1) % MODES.length]!;
-          update({ mode: next });
-          return show(MODE_LABEL[next]);
-        }
-        case "help":
-          return setHelpOpen(true);
-        case "nextMatch":
-        case "prevMatch": {
-          const i = FIXTURES.findIndex((f) => f.id === fixtureId);
-          const step = action === "nextMatch" ? 1 : FIXTURES.length - 1;
-          const next = FIXTURES[(i + step) % FIXTURES.length]!;
-          switchMatch(next.id);
-          return show(`${next.home.short} v ${next.away.short}`);
-        }
-      }
-    },
-    [playback, state.clock, prefs, show, fixtureId, switchMatch],
-  );
-  useShortcuts(run);
 
   return (
-    <FixtureContext.Provider value={info}>
-      <div className="min-h-screen">
-        <div className="mx-auto max-w-360 overflow-hidden glass">
-          <DashboardHeader
-            prefs={prefs}
-            update={update}
-            listen={
-              <ListenSheet
-                listen={listen}
-                score={live.score}
-                status={status}
-                prefs={prefs}
-                update={update}
-                settings={listenSettings}
-                updateSettings={updateListen}
-              />
-            }
-            shortcuts={<ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />}
-          />
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        <header className="flex items-center gap-2.5">
+          <span className="inline-block h-6 w-1.5 rounded-full bg-primary shadow-[0_0_12px_var(--pp-primary)]" />
+          <span className="font-display text-lg font-semibold">PitchPulse</span>
+          <span className="ml-2 text-xs text-muted-foreground">Synthetic League · Matchday</span>
+        </header>
 
-          <div className="relative grid items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-            {/* PRIMARY: the match and what it means */}
-            <main className="min-w-0 space-y-4">
-              <div
-                ref={stageRef}
-                className="relative space-y-3 [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:bg-background [&:fullscreen]:p-4"
-              >
-                <MatchVideo
-                  events={state.events}
-                  score={state.score}
-                  minute={m.minute}
-                  status={status}
-                  prefs={prefs}
-                  fav={m.fav}
-                  favStats={m.favStats}
-                  tag={m.tag}
-                  onAir={m.onAir}
-                  corner={
-                    <LivePlaylist
-                      current={fixtureId}
-                      favClub={prefs.favClub}
-                      onSelect={switchMatch}
-                    />
-                  }
-                />
-                <MatchTimeline
-                  events={live.events}
-                  liveClock={playback.liveClock}
-                  viewClock={state.clock}
-                  isLive={playback.isLive}
-                  playing={playback.playing}
-                  finished={status === "finished"}
-                  onSeek={playback.seek}
-                  onToggle={playback.toggle}
-                  onGoLive={playback.goLive}
-                  onFullscreen={() => run("fullscreen")}
-                />
-                {flash && (
-                  <div
-                    key={flash.id}
-                    aria-hidden
-                    className="pointer-events-none absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/75 px-5 py-2.5 font-display text-lg backdrop-blur animate-slide-in"
-                  >
-                    {flash.text}
-                  </div>
-                )}
-              </div>
-              <MatchTitleBar
-                isLive={playback.isLive}
-                status={status}
-                minute={m.minute}
-                prefs={prefs}
-                fav={m.fav}
-                control={control}
-              />
-              <MatchStats stats={m.stats} star={m.star} starStats={m.starStats} />
-              {prefs.compare && <ComparePanel dual={m.dual} stats={m.stats} />}
-              <div className="grid gap-4 md:grid-cols-2">
-                <RecapPanel recap={m.recap} prefs={prefs} canRun={state.events.length > 0} />
-                <section className="rounded-2xl glass-strong p-4">
-                  <h2 className="mb-3 text-sm font-medium">How the last insight was made</h2>
-                  <AgentTrace overlay={m.lastAgents} />
-                </section>
-              </div>
-            </main>
+        <section className="mt-8">
+          <h1 className="font-display text-3xl font-semibold md:text-4xl">Pick a match</h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            Every key moment explained by a team of AI agents, checked against the match data, in
+            your language. Watch it, or listen with headphones.
+          </p>
+        </section>
 
-            {/* SIDEBAR: live commentary beside the video, like a live chat */}
-            <aside className="space-y-4 lg:sticky lg:top-4">
-              <LiveCommentary feed={m.feed} />
-              <WinProbability winProb={m.stats.winProb} />
-              <MatchCentre events={state.events} stats={m.stats} />
-            </aside>
-          </div>
+        <section aria-labelledby="live-h" className="mt-8">
+          <h2 id="live-h" className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <span className="h-2 w-2 rounded-full bg-live animate-live" />
+            Live now
+          </h2>
+          {live.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Loading the matchday…</p>
+          ) : (
+            <ul className="grid gap-3 md:grid-cols-3">
+              {live.map((m) => (
+                <LiveCard
+                  key={m.id}
+                  m={m}
+                  followed={followed}
+                  goal={now - (goalAt[m.id] ?? 0) < GOAL_FLASH_MS}
+                  next={upcoming.find((u) => u.channel === live.indexOf(m))}
+                  now={now}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <section aria-labelledby="up-h">
+            <h2 id="up-h" className="mb-3 text-sm font-medium">
+              Coming up
+            </h2>
+            <ul className="divide-y divide-border overflow-hidden rounded-2xl glass-strong">
+              {upcoming.map((u) => (
+                <UpcomingRow key={u.id} u={u} followed={followed} now={now} />
+              ))}
+            </ul>
+          </section>
+
+          <YourTeams follow={follow} update={update} />
         </div>
+
+        <p className="mt-10 text-center text-[11px] text-muted-foreground">
+          All clubs, players and events are synthetic. Player portraits are AI-generated.
+        </p>
       </div>
-    </FixtureContext.Provider>
+    </div>
+  );
+}
+
+function Teams({ home, away, followed }: { home: string; away: string; followed: Set<string> }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="flex -space-x-2">
+        <ClubBadge team="home" clubId={home} size={32} />
+        <ClubBadge team="away" clubId={away} size={32} />
+      </span>
+      <span className="min-w-0 leading-tight">
+        {[home, away].map((id) => (
+          <span key={id} className="flex items-center gap-1 truncate text-sm">
+            {club(id).name}
+            {followed.has(id) && (
+              <span aria-label="followed" className="text-live">
+                ♥
+              </span>
+            )}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function LiveCard({
+  m,
+  followed,
+  goal,
+  next,
+  now,
+}: {
+  m: LiveMatch;
+  followed: Set<string>;
+  goal: boolean;
+  next: UpcomingMatch | undefined;
+  now: number;
+}) {
+  const finished = m.status === "finished";
+  return (
+    <li
+      key={goal ? "goal" : "calm"}
+      className={`rounded-2xl border p-4 glass-strong ${goal ? "border-win animate-goal" : "border-transparent"}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <Teams home={m.home} away={m.away} followed={followed} />
+        <span className="font-display text-3xl font-semibold tabular-nums">
+          {m.score.home}–{m.score.away}
+        </span>
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        {goal ? (
+          <span className="font-bold text-win">GOAL!</span>
+        ) : finished ? (
+          <span>
+            Full time
+            {next && ` · next here in ${until(next.kickoffAt, now)}`}
+          </span>
+        ) : (
+          <>
+            <span className="tabular-nums">{m.minute}'</span>
+            <span className="h-1 flex-1 overflow-hidden rounded-full bg-border">
+              <span
+                className="block h-full rounded-full bg-live"
+                style={{ width: `${Math.min(100, (m.minute / 90) * 100)}%` }}
+              />
+            </span>
+          </>
+        )}
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Link
+          to="/watch"
+          search={{ match: m.id }}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground"
+        >
+          <Play variant="Bold" className="h-4 w-4" />
+          Watch
+        </Link>
+        <Link
+          to="/watch"
+          search={{ match: m.id, listen: 1 }}
+          aria-label={`Listen to ${club(m.home).name} against ${club(m.away).name}`}
+          className="grid w-11 place-items-center rounded-xl bg-secondary"
+          title="Listen (audio mode)"
+        >
+          <Headphones className="h-4 w-4" />
+        </Link>
+      </div>
+    </li>
+  );
+}
+
+function until(at: number, now: number): string {
+  const min = Math.ceil((at - now) / 60000);
+  return min <= 1 ? "under a minute" : `~${min} min`;
+}
+
+function UpcomingRow({
+  u,
+  followed,
+  now,
+}: {
+  u: UpcomingMatch;
+  followed: Set<string>;
+  now: number;
+}) {
+  return (
+    <li className="flex items-center justify-between gap-3 px-4 py-3">
+      <Teams home={u.home} away={u.away} followed={followed} />
+      <span className="shrink-0 text-xs text-muted-foreground">
+        Kick-off in {until(u.kickoffAt, now)}
+      </span>
+    </li>
+  );
+}
+
+function YourTeams({
+  follow,
+  update,
+}: {
+  follow: Follow;
+  update: (patch: Partial<Follow>) => void;
+}) {
+  const toggle = (id: string) =>
+    update({
+      also: follow.also.includes(id) ? follow.also.filter((c) => c !== id) : [...follow.also, id],
+    });
+  return (
+    <section aria-labelledby="teams-h" className="rounded-2xl glass-strong p-5">
+      <h2 id="teams-h" className="text-sm font-medium">
+        Your teams
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        While you watch, live matches of the clubs you follow stack up in the corner of the pitch,
+        and goals there pop up so you can switch.
+      </p>
+
+      <fieldset className="mt-4">
+        <legend className="mb-2 text-xs text-muted-foreground">Your club</legend>
+        <div className="flex flex-wrap gap-2">
+          {CLUBS.map((c) => (
+            <label
+              key={c.id}
+              className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${follow.favClub === c.id ? "border-live bg-live/10" : "border-border"}`}
+            >
+              <input
+                type="radio"
+                name="fav-club"
+                className="sr-only"
+                checked={follow.favClub === c.id}
+                onChange={() => update({ favClub: c.id })}
+              />
+              <ClubBadge team="home" clubId={c.id} size={20} />
+              {c.short}
+              {follow.favClub === c.id && <span className="text-live">♥</span>}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="mt-4">
+        <legend className="mb-2 text-xs text-muted-foreground">Also keep track of</legend>
+        <div className="flex flex-wrap gap-2">
+          {CLUBS.filter((c) => c.id !== follow.favClub).map((c) => {
+            const on = follow.also.includes(c.id);
+            return (
+              <label
+                key={c.id}
+                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10" : "border-border text-muted-foreground"}`}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={on}
+                  onChange={() => toggle(c.id)}
+                />
+                <ClubBadge team="away" clubId={c.id} size={20} />
+                {c.name}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+    </section>
   );
 }

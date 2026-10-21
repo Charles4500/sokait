@@ -1,26 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { CLUBS, type TeamId } from "@/match/engine";
-import type { MatchStatus } from "@/match/hub";
+import { useEffect, useState } from "react";
+import { CLUBS } from "@/match/engine";
+import { useMatchday, type LiveMatch } from "@/match/use-matchday";
 import { ClubBadge } from "./avatars";
 
-interface LiveMatch {
-  id: string;
-  home: string;
-  away: string;
-  score: Record<TeamId, number>;
-  minute: number;
-  status: MatchStatus;
-}
-
 const club = (id: string) => CLUBS.find((c) => c.id === id);
-const POLL_MS = 3000;
 const GOAL_FLASH_MS = 10000;
 const CARD_H = 60; // px
 const PEEK = 9; // px of each card visible behind the front one
 const GAP = 6; // px between cards when fanned out
 
 /**
- * Matches playing right now as a stacked deck in the corner of the pitch. The front card
+ * Live matches involving the clubs the fan follows, as a stacked deck in the corner of
+ * the pitch (hidden when they follow no other match). The front card
  * is the most urgent (a goal elsewhere, then other live matches); the one you're watching
  * sits at the back. Hover, focus or tap fans the deck out. A goal makes its card jump to
  * the front, glow and pop.
@@ -28,45 +19,32 @@ const GAP = 6; // px between cards when fanned out
 export function LivePlaylist({
   current,
   favClub,
+  followed,
   onSelect,
+  className = "w-60",
 }: {
+  className?: string;
   current: string;
   favClub: string;
+  /** Clubs the fan follows; only their matches appear. */
+  followed: Set<string>;
   onSelect: (id: string) => void;
 }) {
-  const [matches, setMatches] = useState<LiveMatch[]>([]);
-  const [goalAt, setGoalAt] = useState<Record<string, number>>({});
+  const { live, goalAt } = useMatchday();
   const [fanned, setFanned] = useState(false);
   const [, tick] = useState(0);
-  const last = useRef<Record<string, number>>({});
 
+  // Re-render now and then so goal highlights expire.
   useEffect(() => {
-    let live = true;
-    const load = async () => {
-      const res = await fetch("/api/match/live").catch(() => null);
-      if (!res?.ok || !live) return;
-      const list = (await res.json()) as LiveMatch[];
-      const now = Date.now();
-      const fresh: Record<string, number> = {};
-      for (const m of list) {
-        const total = m.score.home + m.score.away;
-        const before = last.current[m.id];
-        if (before !== undefined && total > before) fresh[m.id] = now;
-        last.current[m.id] = total;
-      }
-      if (Object.keys(fresh).length) setGoalAt((g) => ({ ...g, ...fresh }));
-      setMatches(list);
-      tick((n) => n + 1); // let goal highlights expire
-    };
-    void load();
-    const t = setInterval(load, POLL_MS);
-    return () => {
-      live = false;
-      clearInterval(t);
-    };
+    const t = setInterval(() => tick((n) => n + 1), 2000);
+    return () => clearInterval(t);
   }, []);
 
-  if (!matches.length) return null;
+  const matches = live.filter(
+    (m) => m.id === current || followed.has(m.home) || followed.has(m.away),
+  );
+  // Nothing followed elsewhere: just the game they picked, no deck.
+  if (!matches.some((m) => m.id !== current)) return null;
 
   const now = Date.now();
   const hasGoal = (m: LiveMatch) => m.id !== current && now - (goalAt[m.id] ?? 0) < GOAL_FLASH_MS;
@@ -87,7 +65,7 @@ export function LivePlaylist({
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setFanned(false);
       }}
-      className="w-60"
+      className={className}
     >
       <div className="mb-1.5 flex items-center justify-end gap-2 text-xs font-medium">
         <span className="flex items-center gap-1.5 rounded-full glass px-2.5 py-1">

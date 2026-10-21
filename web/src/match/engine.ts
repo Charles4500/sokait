@@ -141,11 +141,51 @@ export interface Fixture {
   seed: number;
 }
 
-export const FIXTURES: Fixture[] = [
-  { id: "main", home: club("thr"), away: club("mer"), seed: 42 },
-  { id: "sev-pen", home: club("sev"), away: club("pen"), seed: 7 },
-  { id: "avo-tyn", home: club("avo"), away: club("tyn"), seed: 19 },
+const fx = (id: string, home: string, away: string, seed: number): Fixture => ({
+  id,
+  home: club(home),
+  away: club(away),
+  seed,
+});
+
+/** A full round-robin: every club plays every other once, three fixtures per round. */
+export const ROUNDS: Fixture[][] = [
+  [fx("main", "thr", "mer", 42), fx("sev-pen", "sev", "pen", 7), fx("avo-tyn", "avo", "tyn", 19)],
+  [
+    fx("thr-sev", "thr", "sev", 3),
+    fx("mer-avo", "mer", "avo", 11),
+    fx("pen-tyn", "pen", "tyn", 23),
+  ],
+  [
+    fx("avo-thr", "avo", "thr", 5),
+    fx("pen-mer", "pen", "mer", 13),
+    fx("sev-tyn", "sev", "tyn", 29),
+  ],
+  [
+    fx("thr-pen", "thr", "pen", 17),
+    fx("tyn-mer", "tyn", "mer", 31),
+    fx("sev-avo", "sev", "avo", 37),
+  ],
+  [
+    fx("tyn-thr", "tyn", "thr", 41),
+    fx("mer-sev", "mer", "sev", 43),
+    fx("pen-avo", "pen", "avo", 47),
+  ],
 ];
+
+/** Fixtures play on parallel channels; each channel works through its column of rounds. */
+export const CHANNELS = ROUNDS[0]!.length;
+
+export const FIXTURES: Fixture[] = ROUNDS.flat();
+
+/** The channel a fixture plays on, and its round. */
+export function slotOf(fixtureId: string): { channel: number; round: number } {
+  for (let round = 0; round < ROUNDS.length; round++) {
+    const channel = ROUNDS[round]!.findIndex((f) => f.id === fixtureId);
+    if (channel >= 0) return { channel, round };
+  }
+  return { channel: 0, round: 0 };
+}
 
 export const fixtureById = (id: string | null | undefined) =>
   FIXTURES.find((f) => f.id === id) ?? FIXTURES[0]!;

@@ -1,8 +1,11 @@
 // Server-side match sessions. One session = one live synthetic match that every
 // viewer and overlay partner shares. Import only from server route handlers.
 import {
+  CHANNELS,
   FIXTURES,
+  ROUNDS,
   fixtureById,
+  slotOf,
   initialState,
   nextEvent,
   MATCH_LENGTH_S,
@@ -38,10 +41,12 @@ export const DEFAULT_MATCH_ID = "main";
 const DEFAULT_SEED = Number(process.env["MATCH_SEED"]) || 42;
 const TICK_MS = Number(process.env["MATCH_TICK_MS"]) || 1100;
 const MAX_SESSIONS = 20;
-/** Shared matches kick off again this long after full time, so something is always live. */
-const RESTART_AFTER_MS = Number(process.env["MATCH_RESTART_MS"] ?? 45000);
-/** Fixtures kick off at different times, like a real matchday (events already played). */
+/** Break between full time and the next fixture on the same channel. */
+const BREAK_MS = Number(process.env["MATCH_RESTART_MS"] ?? 45000);
+/** Channels kick off at different times, like a real matchday (events already played). */
 const KICKOFF_STAGGER_EVENTS = 55;
+/** Match time advanced per event, on average (see nextEvent): for kick-off estimates. */
+const AVG_EVENT_S = 30;
 
 export class MatchSession {
   state: MatchState;
@@ -51,9 +56,8 @@ export class MatchSession {
   private log: Extract<HubMessage, { type: "event" }>[] = [];
   private listeners = new Set<Listener>();
   private timer: ReturnType<typeof setInterval> | null = null;
-  private restartTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Set for shared matches: kick off a new game this long after full time. */
-  autoRestartMs = 0;
+  /** Called once at full time (the hub uses it to schedule the channel's next fixture). */
+  onFinished: (() => void) | null = null;
 
   constructor(
     readonly id: string,
@@ -108,8 +112,7 @@ export class MatchSession {
     this.emit(msg);
     if (this.state.clock >= MATCH_LENGTH_S) {
       this.setStatus("finished");
-      if (this.autoRestartMs > 0)
-        this.restartTimer = setTimeout(() => this.restart(this.seed + 1), this.autoRestartMs);
+      this.onFinished?.();
     }
   }
 
@@ -127,8 +130,6 @@ export class MatchSession {
   }
 
   restart(seed = this.seed) {
-    if (this.restartTimer) clearTimeout(this.restartTimer);
-    this.restartTimer = null;
     this.seed = seed;
     this.gen++;
     this.state = initialState(seed, this.fixture);
@@ -139,7 +140,6 @@ export class MatchSession {
 
   dispose() {
     if (this.timer) clearInterval(this.timer);
-    if (this.restartTimer) clearTimeout(this.restartTimer);
     this.timer = null;
     this.listeners.clear();
   }
@@ -165,41 +165,116 @@ export class MatchSession {
   }
 }
 
-// Survive Vite HMR in dev: keep sessions on globalThis.
-const g = globalThis as unknown as { __pitchpulseSessions?: Map<string, MatchSession> };
+// Survive Vite HMR in dev: keep sessions and channels on globalThis.
+interface Channel {
+  index: number;
+  round: number;
+  cycle: number;
+  session: MatchSession;
+  /** When the next fixture kicks off, once this one has finished. */
+  nextAt: number | null;
+}
+const g = globalThis as unknown as {
+  __pitchpulseSessions?: Map<string, MatchSession>;
+  __pitchpulseChannels?: Channel[];
+};
 const sessions = (g.__pitchpulseSessions ??= new Map());
 
+function startFixture(ch: Omit<Channel, "session" | "nextAt">, stagger: number): Channel {
+  const fixture = ROUNDS[ch.round]![ch.index]!;
+  const base = fixture.id === DEFAULT_MATCH_ID ? DEFAULT_SEED : fixture.seed;
+  const session = new MatchSession(fixture.id, base + ch.cycle * 1000, TICK_MS, fixture);
+  sessions.get(fixture.id)?.dispose();
+  sessions.set(fixture.id, session);
+  const channel: Channel = { ...ch, session, nextAt: null };
+  session.onFinished = () => {
+    channel.nextAt = Date.now() + BREAK_MS;
+    setTimeout(() => advance(channel), BREAK_MS);
+  };
+  session.fastForward(stagger);
+  return channel;
+}
+
+function advance(ch: Channel) {
+  const round = (ch.round + 1) % ROUNDS.length;
+  const next = startFixture(
+    { index: ch.index, round, cycle: round === 0 ? ch.cycle + 1 : ch.cycle },
+    0,
+  );
+  g.__pitchpulseChannels![ch.index] = next;
+}
+
+/** The parallel channels, started on first use with staggered kick-offs. */
+function channels(): Channel[] {
+  g.__pitchpulseChannels ??= Array.from({ length: CHANNELS }, (_, index) =>
+    startFixture({ index, round: 0, cycle: 0 }, index * KICKOFF_STAGGER_EVENTS),
+  );
+  return g.__pitchpulseChannels;
+}
+
 /**
- * A fixture's shared broadcast match (every fixture plays at the same time), or a
- * private replay of it when a seed is given (`?seed=7` → session "main:seed-7"), so
- * demos and evaluations are reproducible.
+ * A fixture's shared broadcast match, or a private replay of it when a seed is given
+ * (`?seed=7` → session "main:seed-7"), so demos and evaluations are reproducible.
+ * A fixture that hasn't kicked off yet resolves to whatever is live on its channel.
  */
 export function getSession(seed?: number, fixtureId?: string | null): MatchSession {
   const fixture = fixtureById(fixtureId);
-  const id = seed === undefined ? fixture.id : `${fixture.id}:seed-${seed}`;
+  if (seed === undefined) {
+    const chs = channels();
+    return sessions.get(fixture.id) ?? chs[slotOf(fixture.id).channel]!.session;
+  }
+  const id = `${fixture.id}:seed-${seed}`;
   let s = sessions.get(id);
   if (!s) {
     if (sessions.size >= MAX_SESSIONS) evictOne();
-    const shared = fixture.id === DEFAULT_MATCH_ID ? DEFAULT_SEED : fixture.seed;
-    s = new MatchSession(id, seed ?? shared, TICK_MS, fixture);
-    if (seed === undefined) {
-      s.autoRestartMs = RESTART_AFTER_MS;
-      s.fastForward(FIXTURES.indexOf(fixture) * KICKOFF_STAGGER_EVENTS);
-    }
+    s = new MatchSession(id, seed, TICK_MS, fixture);
     sessions.set(id, s);
   }
   return s;
 }
 
-/** Every fixture's shared match, started if needed: the "Live now" list. */
+/** The match on each channel right now (live, or at full time before the next one). */
 export function liveSessions(): MatchSession[] {
-  return FIXTURES.map((f) => getSession(undefined, f.id));
+  return channels().map((c) => c.session);
+}
+
+export interface Upcoming {
+  id: string;
+  home: string;
+  away: string;
+  channel: number;
+  /** Estimated kick-off, ms since epoch. */
+  kickoffAt: number;
+}
+
+/** The next fixtures on every channel, with estimated kick-off times. */
+export function upcomingFixtures(perChannel = 2): Upcoming[] {
+  const now = Date.now();
+  const matchMs = (MATCH_LENGTH_S / AVG_EVENT_S) * TICK_MS;
+  return channels()
+    .flatMap((ch) => {
+      const s = ch.session;
+      const remaining =
+        ch.nextAt !== null
+          ? ch.nextAt - now
+          : Math.max(0, (MATCH_LENGTH_S - s.state.clock) / AVG_EVENT_S) * TICK_MS + BREAK_MS;
+      return Array.from({ length: perChannel }, (_, k) => {
+        const f = ROUNDS[(ch.round + 1 + k) % ROUNDS.length]![ch.index]!;
+        return {
+          id: f.id,
+          home: f.home.id,
+          away: f.away.id,
+          channel: ch.index,
+          kickoffAt: Math.round(now + remaining + k * (matchMs + BREAK_MS)),
+        };
+      });
+    })
+    .sort((a, b) => a.kickoffAt - b.kickoffAt);
 }
 
 function evictOne() {
-  // Prefer finished replays, then the oldest replay. Never evict a shared fixture.
-  const shared = new Set(FIXTURES.map((f) => f.id));
-  const replays = [...sessions.values()].filter((s) => !shared.has(s.id));
+  // Only private replays are evicted; channel matches are managed by the schedule.
+  const replays = [...sessions.values()].filter((s) => s.id.includes(":seed-"));
   const victim = replays.find((s) => s.status === "finished") ?? replays[0];
   if (!victim) return;
   victim.dispose();

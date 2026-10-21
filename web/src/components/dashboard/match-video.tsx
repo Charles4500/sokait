@@ -42,8 +42,8 @@ export function MatchVideo({
   const [heatTeam, setHeatTeam] = useState<TeamId>(mine ?? "home");
 
   return (
-    <section className="flex aspect-video max-h-[70vh] w-full flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
-      <div className="relative min-h-0 flex-1">
+    <section className="flex w-full sm:aspect-video sm:max-h-[70vh] flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
+      <div className="relative aspect-[111/80] min-h-0 sm:aspect-auto sm:flex-1">
         <TacticalPitch
           events={events}
           favPlayer={prefs.favPlayer}
@@ -105,11 +105,11 @@ export function MatchVideo({
             </div>
           </div>
         )}
-        {corner && <div className="absolute bottom-3 right-3 z-10">{corner}</div>}
+        {corner && <div className="absolute bottom-3 right-3 z-10 hidden md:block">{corner}</div>}
       </div>
 
       {/* Lower third: the on-air insight, docked under the pitch */}
-      <div className="flex min-h-19 shrink-0 items-center gap-4 border-t border-white/10 bg-background/85 px-4 py-2.5 backdrop-blur">
+      <div className="flex min-h-19 shrink-0 flex-col items-stretch gap-2 border-t border-white/10 bg-background/85 px-3 py-2 backdrop-blur sm:flex-row sm:items-center sm:gap-4 sm:px-4 sm:py-2.5">
         <LowerThird onAir={onAir} lang={prefs.lang} />
         <PitchViewSwitch
           view={view}

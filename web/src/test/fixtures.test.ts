@@ -1,6 +1,15 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { FIXTURES, fixtureById, initialState, nextEvent, playersOf, sideOf } from "@/match/engine";
-import { getSession, liveSessions } from "@/match/hub";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  CLUBS,
+  FIXTURES,
+  ROUNDS,
+  fixtureById,
+  initialState,
+  nextEvent,
+  playersOf,
+  sideOf,
+} from "@/match/engine";
+import { getSession, liveSessions, upcomingFixtures } from "@/match/hub";
 
 describe("fixtures playing at the same time", () => {
   afterEach(() => liveSessions().forEach((s) => s.dispose()));
@@ -16,8 +25,13 @@ describe("fixtures playing at the same time", () => {
   });
 
   it("keeps player ids unique across the league", () => {
-    const ids = FIXTURES.flatMap((f) => playersOf(f).map((p) => p.id));
-    expect(new Set(ids).size).toBe(ids.length);
+    // A player keeps one id across all his club's fixtures; no two players share one.
+    const byId = new Map<string, string>();
+    for (const p of FIXTURES.flatMap(playersOf)) {
+      expect(byId.get(p.id) ?? p.name).toBe(p.name);
+      byId.set(p.id, p.name);
+    }
+    expect(byId.size).toBe(CLUBS.reduce((n, c) => n + c.squad.length, 0));
   });
 
   it("knows which side a club plays on, if it plays at all", () => {
@@ -34,7 +48,7 @@ describe("fixtures playing at the same time", () => {
     expect(getSession(undefined, "avo-tyn")).not.toBe(a);
     expect(getSession(5, "sev-pen").id).toBe("sev-pen:seed-5");
     expect(a.statusMessage()).toMatchObject({ fixtureId: "sev-pen", matchId: "sev-pen" });
-    expect(liveSessions().map((s) => s.fixture.id)).toEqual(FIXTURES.map((f) => f.id));
+    expect(liveSessions().map((s) => s.fixture.id)).toEqual(ROUNDS[0]!.map((f) => f.id));
   });
 });
 
@@ -45,16 +59,38 @@ describe("a matchday that never runs dry", () => {
     liveSessions().forEach((s) => s.dispose());
   });
 
-  it("restarts a shared match after full time with a new game", async () => {
-    const { MatchSession } = await import("@/match/hub");
-    const s = new MatchSession("t", 3, 0, FIXTURES[1]);
-    s.autoRestartMs = 10;
-    s.fastForward(1000);
-    expect(s.status).toBe("finished");
-    await new Promise((r) => setTimeout(r, 30));
-    expect(s.status).toBe("live");
-    expect(s.gen).toBe(2);
-    expect(s.currentSeed).toBe(4);
-    s.dispose();
+  it("moves each channel on to its next fixture after full time", () => {
+    vi.useFakeTimers();
+    const before = liveSessions()[1]!;
+    before.fastForward(1000);
+    expect(before.status).toBe("finished");
+    vi.advanceTimersByTime(60_000);
+    const after = liveSessions()[1]!;
+    expect(after.fixture.id).toBe(ROUNDS[1]![1]!.id);
+    expect(after.status).toBe("live");
+    expect(getSession(undefined, before.fixture.id)).toBe(before); // still watchable at FT
+    vi.useRealTimers();
+  });
+});
+
+describe("the season schedule", () => {
+  it("is a full round-robin: every club plays every other exactly once", () => {
+    const pairs = FIXTURES.map((f) => [f.home.id, f.away.id].sort().join("-"));
+    expect(new Set(pairs).size).toBe((CLUBS.length * (CLUBS.length - 1)) / 2);
+    for (const round of ROUNDS) {
+      const clubs = round.flatMap((f) => [f.home.id, f.away.id]);
+      expect(new Set(clubs).size).toBe(CLUBS.length); // nobody plays twice in a round
+    }
+  });
+
+  it("lists upcoming fixtures in kick-off order, none of them live", () => {
+    const live = new Set(liveSessions().map((s) => s.fixture.id));
+    const up = upcomingFixtures();
+    expect(up.length).toBeGreaterThan(0);
+    expect(up.every((u) => !live.has(u.id))).toBe(true);
+    expect(up.map((u) => u.kickoffAt)).toEqual(
+      [...up.map((u) => u.kickoffAt)].sort((a, b) => a - b),
+    );
+    liveSessions().forEach((s) => s.dispose());
   });
 });

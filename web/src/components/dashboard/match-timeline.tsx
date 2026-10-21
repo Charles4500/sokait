@@ -1,4 +1,4 @@
-import { Maximize4, Pause, Play } from "iconsax-reactjs";
+import { Maximize4, Pause, Play, VolumeHigh, VolumeSlash } from "iconsax-reactjs";
 import { MATCH_LENGTH_S, type MatchEvent } from "@/match/engine";
 import { clockOf } from "@/match/use-playback";
 
@@ -20,6 +20,8 @@ export function MatchTimeline({
   onToggle,
   onGoLive,
   onFullscreen,
+  voice,
+  onVoice,
 }: {
   events: MatchEvent[];
   liveClock: number;
@@ -31,6 +33,9 @@ export function MatchTimeline({
   onToggle: () => void;
   onGoLive: () => void;
   onFullscreen: () => void;
+  /** AI voice commentary on or off (off by default). */
+  voice: boolean;
+  onVoice: () => void;
 }) {
   const markers = events.filter((e) => e.type === "goal" || e.importance >= 0.7);
   const behind = liveClock - viewClock;
@@ -43,6 +48,20 @@ export function MatchTimeline({
         className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-secondary"
       >
         {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      </button>
+
+      <button
+        onClick={onVoice}
+        aria-pressed={voice}
+        aria-label={voice ? "Turn AI voice off (M)" : "Turn AI voice on (M)"}
+        title={voice ? "AI voice on (M)" : "AI voice off (M)"}
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-secondary ${voice ? "text-primary" : "text-muted-foreground"}`}
+      >
+        {voice ? (
+          <VolumeHigh variant="Bold" className="h-4 w-4" />
+        ) : (
+          <VolumeSlash className="h-4 w-4" />
+        )}
       </button>
 
       <div className="relative h-6 min-w-0 flex-1">
