@@ -16,15 +16,18 @@ All clubs, players and events are synthetic. No real league data is used.
 
 ## What it does
 
-- **Live tactical view**: three matches play at once; a top-down pitch shows passes, shots,
-  pressing and goals as they happen, with shot map and heatmap views.
+- **Matchday**: a six-club league plays a full season, three matches at a time. Pick a
+  live match, see what's coming up, and choose the clubs you follow.
+- **Live tactical view**: a top-down pitch shows passes, shots, pressing and goals as they
+  happen, with shot map and heatmap views.
 - **Commentary that explains**: every key moment gets an instant deterministic
   explanation, then verified AI commentary ("What a strike from Pike! That equaliser pulls
   the game back into balance…") in a broadcast-style lower third.
 - **Personalised**: casual fan, analyst or player focus; English, Swahili, Spanish, French,
   Arabic, Portuguese; favourite club and player; side-by-side Analyst vs Fan.
-- **Live timeline**: scrub back, replay from any goal, pause your own view, rejoin live,
-  switch matches from a Live now list. YouTube-style keyboard shortcuts (`?` lists them).
+- **Live timeline**: scrub back, replay from any goal, pause your own view, rejoin live.
+  Matches of clubs you follow stack up in the corner; a goal there pops up so you can
+  switch. YouTube-style keyboard shortcuts (`?` lists them).
 - **PitchPulse Listen**: spatial ball audio, earcons, spoken AI commentary and voice
   questions ("how is Mensah doing?"), with a screen-reader mode.
 - **Recaps and Q&A**: a Recap Editor agent writes match recaps; a Match Q&A agent answers
@@ -51,7 +54,8 @@ web/                    TypeScript web app (TanStack Start, React, Tailwind, sha
   src/insights/         Calls to the agent service, key-moment logic, speech
   src/listen/           PitchPulse Listen: spatial audio, spoken commentary, voice Q&A
   src/components/       Dashboard sections and shadcn/ui primitives
-  src/routes/           Page and API routes (SSE match streams, live list, feed, TTS)
+  src/routes/           Matchday (/) and watch (/watch) pages; API routes (SSE streams,
+                        matchday list, partner feed, TTS)
   scripts/              Export a match's key moments for the evaluation
 agents/                 Python agent service (Microsoft Agent Framework, FastAPI)
   src/pitchpulse_agents/  Agents, workflow, Fact-Checker, memory, cache, budget, models
@@ -77,8 +81,8 @@ cd voice && uv sync && uv run uvicorn pitchpulse_voice.server:app --port 8001
 cd web && bun install && bun run dev
 ```
 
-Open http://localhost:8080. Press `?` for keyboard shortcuts, and **Listen** in the header
-for the audio mode. Microsoft Edge has natural browser voices; other browsers use the
+Open http://localhost:8080 and pick a match. On the watch page, press `?` for keyboard
+shortcuts, and **Listen** in the header for the audio mode. Microsoft Edge has natural browser voices; other browsers use the
 voice service.
 
 ## Configuration
@@ -108,4 +112,5 @@ CI runs type checks, linting, formatting, tests and container builds for every s
 
 `web/` and `agents/` are released under the [MIT licence](LICENSE). `voice/` is
 GPL-3.0-or-later because it uses Piper; it runs as a separate service over HTTP. Player
-and club art is generated with DiceBear's CC0 styles.
+portraits are generated with FLUX.1-schnell (Apache-2.0); club badges use DiceBear's CC0
+styles.

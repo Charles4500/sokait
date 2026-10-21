@@ -14,7 +14,7 @@ a Fact-Checker verifies every line before it airs.
 
 | Stage           | What happens                                                                                                                                                          | Where                                                   |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **Ingest**      | A seeded simulator plays three fixtures at once: passes, shots, tackles, possession and pressure events, each with pitch coordinates, distances and speeds.           | `web/src/match/engine.ts`, `web/src/match/hub.ts` (SSE) |
+| **Ingest**      | A seeded simulator plays a six-club round-robin, three fixtures at once: passes, shots, tackles, possession and pressure events, with pitch coordinates and speeds.   | `web/src/match/engine.ts`, `web/src/match/hub.ts` (SSE) |
 | **Interpret**   | Pure functions turn events into stats: xG, pass accuracy and difficulty, shot and run speed, pressing, control vs chaos, momentum, win probability, player tags.      | `web/src/match/engine.ts`                               |
 | **Explain**     | A team of agents decides why a moment matters, citing evidence from the stats, and narrates it per audience.                                                          | `agents/` (Python, Microsoft Agent Framework)           |
 | **Render**      | Tactical pitch, lower-third overlays, live commentary, timeline with replay, agent trace, and a versioned overlay feed (`smie.overlay.v2`).                           | `web/src/components/dashboard/`, `/api/public/feed`     |
@@ -25,7 +25,9 @@ a Fact-Checker verifies every line before it airs.
 ```mermaid
 flowchart LR
   subgraph Web["web/ · TanStack Start (Node)"]
-    HUB["Match hub<br/>3 live fixtures, seeded"] -->|SSE| DASH["Dashboard<br/>pitch · timeline · commentary"]
+    DAY["Matchday page<br/>live · coming up · your teams"] --> DASH
+    HUB["Match hub<br/>3 channels · round-robin season"] -->|SSE| DASH["Watch page<br/>pitch · timeline · commentary"]
+    HUB -->|/api/match/live| DAY
     HUB -->|SSE| FEED["Partner feed<br/>smie.overlay.v2"]
     DASH --> LISTEN["PitchPulse Listen<br/>spatial audio · voice Q&A"]
     DASH -->|key moment| FN["Server functions"]
@@ -173,13 +175,18 @@ from the voice service's Piper voices, so every browser can speak.
 
 ## Data: synthetic and reproducible
 
-- A six-club synthetic league; three fixtures play at the same time with staggered
-  kick-offs and restart after full time.
+- A six-club synthetic league plays a full round-robin (every club meets every other once)
+  on three parallel channels. Channels kick off at staggered times; after full time and a
+  short break, each moves on to its next fixture, so there is always something live and
+  something coming up.
+- Fans pick a match on the matchday page and choose clubs to follow; while watching, live
+  matches of followed clubs stack in the corner of the pitch and goals there pop up.
 - Every match is **seeded**: `?seed=N` replays it exactly, for demos, tests and the
   evaluation (`web/scripts/export-moments.ts` exports any match's key moments).
 - Events carry pitch coordinates on a 105 × 68 m pitch, and shot quality follows distance
   and angle, so the tactical view, shot map and heatmap are consistent with the stats.
-- Player and club art is generated (DiceBear, CC0).
+- Player portraits are generated once with FLUX.1-schnell (Apache-2.0) on Cloudflare
+  Workers AI and cropped so no kit branding shows; club badges are DiceBear (CC0).
 
 ## Responsible AI
 
