@@ -42,7 +42,7 @@ export function MatchVideo({
   const [heatTeam, setHeatTeam] = useState<TeamId>(mine ?? "home");
 
   return (
-    <section className="flex w-full sm:aspect-video sm:max-h-[70vh] flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
+    <section className="flex w-full bg-[radial-gradient(ellipse_at_center,oklch(0.32_0.07_150),oklch(0.2_0.04_160))] sm:aspect-video sm:max-h-[70vh] flex-col overflow-hidden rounded-2xl in-[:fullscreen]:aspect-auto in-[:fullscreen]:max-h-none in-[:fullscreen]:flex-1">
       <div className="relative aspect-[111/80] min-h-0 sm:aspect-auto sm:flex-1">
         <TacticalPitch
           events={events}
@@ -56,7 +56,7 @@ export function MatchVideo({
         <div
           className={`absolute left-4 top-4 flex items-center gap-3 ${prefs.mode === "player" ? "right-60" : "right-4"}`}
         >
-          <div className="flex shrink-0 items-center gap-3 rounded-full glass px-4 py-2 font-display">
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/10 bg-black/25 px-4 py-2 font-display backdrop-blur-md">
             <ClubBadge team="home" size={26} /> {mine === "home" && "♥ "}
             {teams.home.short}{" "}
             <span className="text-xl">
@@ -71,7 +71,7 @@ export function MatchVideo({
           {tag && (
             <div
               key={tag.id}
-              className="min-w-0 truncate rounded-full bg-primary flex items-center gap-2 py-1 pl-1 pr-4 font-display text-sm text-primary-foreground shadow-cta animate-slide-in"
+              className="min-w-0 truncate rounded-full border border-white/15 bg-primary/55 flex items-center gap-2 py-1 pl-1 pr-4 font-display text-sm text-primary-foreground backdrop-blur-md animate-slide-in"
             >
               <PlayerAvatar player={tag.player} size={24} />
               {tag.text}
@@ -108,9 +108,14 @@ export function MatchVideo({
         {corner && <div className="absolute bottom-3 right-3 z-10 hidden md:block">{corner}</div>}
       </div>
 
-      {/* Lower third: the on-air insight, docked under the pitch */}
-      <div className="flex min-h-19 shrink-0 flex-col items-stretch gap-2 border-t border-white/10 bg-background/85 px-3 py-2 backdrop-blur sm:flex-row sm:items-center sm:gap-4 sm:px-4 sm:py-2.5">
-        <LowerThird onAir={onAir} lang={prefs.lang} />
+      {/* Lower third: on-air insights stacked like live comments, under the pitch on the
+          same grass, so insights never cover the play. */}
+      <div className="flex shrink-0 flex-col items-stretch gap-1.5 px-3 pb-2 sm:flex-row sm:items-end sm:gap-4 sm:px-4">
+        <LiveComments
+          key={`${teams.home.short}-${teams.away.short}`}
+          onAir={onAir}
+          lang={prefs.lang}
+        />
         <PitchViewSwitch
           view={view}
           setView={setView}
@@ -122,50 +127,66 @@ export function MatchVideo({
   );
 }
 
-function LowerThird({ onAir, lang }: { onAir: OnAir | null; lang: string }) {
-  // After its broadcast time, the insight dims so the eye returns to the pitch.
-  const [fresh, setFresh] = useState(true);
+/** How many insights stay in the stack; older ones fade out at the top. */
+const FEED_SIZE = 3;
+
+function LiveComments({ onAir, lang }: { onAir: OnAir | null; lang: string }) {
+  const [feed, setFeed] = useState<OnAir[]>([]);
   useEffect(() => {
     if (!onAir) return;
-    setFresh(true);
-    const t = setTimeout(() => setFresh(false), onAir.durationMs);
-    return () => clearTimeout(t);
-  }, [onAir?.title, onAir?.durationMs]); // eslint-disable-line react-hooks/exhaustive-deps
+    setFeed((f) => {
+      const last = f.at(-1);
+      if (last?.title === onAir.title) return f;
+      // Back in time (restart, replay): start the stack again.
+      if (last && onAir.minute < last.minute) return [onAir];
+      return [...f, onAir].slice(-FEED_SIZE);
+    });
+  }, [onAir]);
 
-  if (!onAir) {
+  if (feed.length === 0) {
     return (
-      <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground">
+      <p className="flex min-h-8 min-w-0 flex-1 items-center gap-2 text-[11px] text-white/70">
         <span className="h-1.5 w-1.5 rounded-full bg-live animate-live" />
         Live analysis · waiting for the next big moment
       </p>
     );
   }
   return (
-    <div
-      key={onAir.title}
-      className={`flex min-w-0 flex-1 items-center gap-3 transition-opacity duration-700 animate-slide-in ${fresh ? "opacity-100" : "opacity-55"}`}
+    <ol
+      aria-live="polite"
+      className="flex max-h-28 min-w-0 flex-1 flex-col justify-end gap-1 overflow-hidden mask-t-from-40%"
     >
-      <span
-        aria-hidden
-        className={`w-1 self-stretch rounded-full ${onAir.team === "home" ? "bg-team-home" : "bg-team-away"}`}
-      />
-      <PlayerAvatar player={onAir.player} size={34} />
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="rounded bg-foreground px-1.5 font-display text-xs font-semibold text-background">
-            {onAir.minute}'
-          </span>
-          <span className="truncate font-display text-sm">{onAir.label}</span>
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-            <MagicStar variant="Bulk" className="h-3.5 w-3.5 text-primary" />
-            {onAir.ai ? `AI · ${lang}` : "Live"}
-            {onAir.verification && <VerifiedBadge v={onAir.verification} />}
-          </span>
-        </div>
-        <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
-          {onAir.text}
-        </p>
-      </div>
-    </div>
+      {feed.map((c, i) => {
+        const newest = i === feed.length - 1;
+        return (
+          <li
+            key={c.title}
+            className={`flex w-fit max-w-full items-start gap-1.5 rounded-xl bg-black/30 py-1 pl-1 pr-3 transition-opacity duration-500 animate-slide-in ${newest ? "" : "opacity-75"}`}
+          >
+            <span
+              className={`shrink-0 rounded-full ring-2 ${c.team === "home" ? "ring-team-home" : "ring-team-away"}`}
+            >
+              <PlayerAvatar player={c.player} size={newest ? 28 : 22} />
+            </span>
+            {/* The newest gets two lines to be read in full; older ones shrink to one. */}
+            <p
+              className={`min-w-0 text-white [text-shadow:0_1px_2px_oklch(0_0_0/0.6)] ${newest ? "line-clamp-2 text-sm leading-snug" : "truncate text-xs leading-5"}`}
+            >
+              <span className="mr-1.5 font-display font-semibold text-white">
+                {c.minute}' {c.player.name}
+              </span>
+              {c.text}
+              {newest && (
+                <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] text-white/75">
+                  <MagicStar variant="Bulk" className="h-3 w-3 text-primary" />
+                  {c.ai ? `AI · ${lang}` : "Live"}
+                  {c.verification && <VerifiedBadge v={c.verification} />}
+                </span>
+              )}
+            </p>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

@@ -35,7 +35,8 @@ export function TacticalPitch({
   heatTeam: TeamId;
 }) {
   return (
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.32_0.07_150),oklch(0.2_0.04_160))]">
+    // Transparent: the grass is painted by the container, so strips under it blend in.
+    <div className="absolute inset-0">
       <svg
         viewBox={VIEWBOX}
         preserveAspectRatio="xMidYMid meet"
