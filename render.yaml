@@ -1,5 +1,5 @@
 # Render Blueprint: Sokait (web app + agent service) on one free web service.
-# Voice is left out: the free instance has 512 MB, and Edge's browser voices cover it.
+# All three services fit the free instance's 512 MB (about 350 MB in use).
 services:
   - type: web
     name: sokait

@@ -1,7 +1,7 @@
 # Sokait in one container, for a single-service host such as Render's free tier: the
 # web app on $PORT, the agent service (and optionally the voice service) on localhost.
-#   docker build -f deploy/Dockerfile .                       # web + agents (~150 MB RAM)
-#   docker build -f deploy/Dockerfile --build-arg WITH_VOICE=1 .   # + Piper voices (~500 MB)
+#   docker build -f deploy/Dockerfile .                            # all three (~350 MB RAM)
+#   docker build -f deploy/Dockerfile --build-arg WITH_VOICE=0 .   # no voice (~150 MB RAM)
 FROM oven/bun:1.3.11 AS web
 WORKDIR /src
 COPY web/package.json web/bun.lock web/bunfig.toml ./
@@ -11,7 +11,7 @@ COPY web/ ./
 RUN bun run build
 
 FROM node:24-slim
-ARG WITH_VOICE=0
+ARG WITH_VOICE=1
 COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /bin/uv
 # The slim image has no CA certificates; model calls and voice downloads need HTTPS.
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
@@ -28,7 +28,7 @@ RUN cd agents && uv sync --frozen --no-dev
 
 COPY --chown=node voice/pyproject.toml voice/uv.lock voice/README.md voice/
 COPY --chown=node voice/src voice/src
-# One Piper voice per supported language (about 360 MB), only when asked for.
+# One Piper voice per supported language (about 360 MB on disk), unless WITH_VOICE=0.
 RUN if [ "$WITH_VOICE" = 1 ]; then \
       cd voice && uv sync --frozen --no-dev --python 3.12 \
       && .venv/bin/python -m piper.download_voices --download-dir ../voices \

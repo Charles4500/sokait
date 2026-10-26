@@ -127,11 +127,12 @@ through the agent service's managed identity.
 
 ## Deploy as one container
 
-`deploy/Dockerfile` runs the web app and the agent service in a single container (about
-150 MB of RAM), for single-service hosts. The live demo runs on Render's free tier from
-`render.yaml`: create a Blueprint from this repository and enter `OPENAI_API_KEY` and
-`GEMINI_API_KEY` when asked. Build with `--build-arg WITH_VOICE=1` to include the voice
-service as well (about 500 MB of RAM with two languages loaded).
+`deploy/Dockerfile` runs all three services in a single container (about 350 MB of RAM),
+for single-service hosts; `--build-arg WITH_VOICE=0` leaves the voice service out. The
+live demo at https://sokait.onsent.co is this image on a VPS with Dokploy: Dockerfile
+`deploy/Dockerfile`, context `.`, container port `10000`, and `OPENAI_API_KEY` and
+`GEMINI_API_KEY` as environment variables. `render.yaml` deploys the same image to
+Render's free tier.
 
 ## Licence
 
