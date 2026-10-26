@@ -58,6 +58,11 @@ async def live_run(moments: list[MomentRequest]) -> dict:
     latencies, numbers_checked, analyst_ok = [], 0, 0
     examples: list[tuple[str, str, str]] = []
     for m in moments:
+        # Key moments arrive minutes apart in a real match; here they come back to back.
+        # Wait for the per-minute token window instead of letting the Producer ration AI,
+        # so every moment measures the model (waits are not counted as latency).
+        while engine.budget.pressure() > 0.35:
+            await asyncio.sleep(2)
         t = time.perf_counter()
         ov = await engine.process(m)
         latencies.append(time.perf_counter() - t)
@@ -134,6 +139,11 @@ def report(live: dict | None, faults: dict, seed_note: str) -> str:
             (
                 f"## Live run ({backend_name()}, {live['moments']} key moments × "
                 f"{len(SEGMENTS)} audiences)"
+            ),
+            "",
+            (
+                "Moments are paced to the per-minute token budget, as key moments would "
+                "arrive in a live match; the wait is not counted as latency."
             ),
             "",
             "| Metric | Result |",

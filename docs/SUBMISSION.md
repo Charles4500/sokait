@@ -72,9 +72,13 @@ as containers, with a Bicep template that deploys them to Azure Container Apps.
 
 ## Evaluation
 
-In fault-injection tests, the narrator was forced to invent statistics: the Fact-Checker
-caught all 28 invented drafts and the repair loop fixed every one, so none reached the
-screen. Results and the live-model run are in `docs/EVAL.md`.
+On the 21 key moments of a full synthetic match, narrated for two audiences (English and
+Swahili) on the live models, the Analyst produced a grounded insight for 95% of moments;
+93% of narrations passed the Fact-Checker first time, 2% were repaired, and 5% fell back
+to the deterministic explanation. Median latency was 1.9 s per moment. In fault-injection
+tests, the narrator was forced to invent statistics: the Fact-Checker caught all 28
+invented drafts and the repair loop fixed every one, so none reached the screen. Details
+are in `docs/EVAL.md`.
 
 ## Challenges
 
