@@ -103,5 +103,6 @@ source: the ingest stage is an interface, so nothing downstream changes.
 
 ## Links
 
+- Live demo: https://sokait.onsent.co (demo match: https://sokait.onsent.co/watch?seed=965)
 - Code: https://github.com/Charles4500/sokait
 - Demo video: _add YouTube link_

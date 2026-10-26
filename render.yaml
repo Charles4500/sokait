@@ -1,4 +1,4 @@
-# Render Blueprint: Sokait (web app + agent service) on one free web service.
+# Render Blueprint: Sokait (web app, agent and voice services) on one free web service.
 # All three services fit the free instance's 512 MB (about 350 MB in use).
 services:
   - type: web
