@@ -125,6 +125,14 @@ az deployment group create -g sokait -f infra/main.bicep -p infra/main.biceppara
 Set `foundryProjectEndpoint` in `infra/main.bicepparam` to use Microsoft Foundry models
 through the agent service's managed identity.
 
+## Deploy as one container
+
+`deploy/Dockerfile` runs the web app and the agent service in a single container (about
+150 MB of RAM), for single-service hosts. The live demo runs on Render's free tier from
+`render.yaml`: create a Blueprint from this repository and enter `OPENAI_API_KEY` and
+`GEMINI_API_KEY` when asked. Build with `--build-arg WITH_VOICE=1` to include the voice
+service as well (needs about 1.5 GB of RAM).
+
 ## Licence
 
 `web/` and `agents/` are released under the [MIT licence](LICENSE). `voice/` is

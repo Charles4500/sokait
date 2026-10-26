@@ -1,0 +1,15 @@
+# Render Blueprint: Sokait (web app + agent service) on one free web service.
+# Voice is left out: the free instance has 512 MB, and Edge's browser voices cover it.
+services:
+  - type: web
+    name: sokait
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

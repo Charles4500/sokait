@@ -1,0 +1,12 @@
+# Build context for deploy/Dockerfile (repo root). Never send secrets or local builds.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+web/.output
+web/.tanstack
+web/.playwright-mcp
+.git
