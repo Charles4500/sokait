@@ -30,7 +30,7 @@ import { CLUBS, type TeamId } from "@/match/engine";
 import { favSide, useFixture } from "@/match/fixture-context";
 import type { MatchStatus } from "@/match/hub";
 import type { Detail, ListenPrefs, Spoken, useListen } from "./use-listen";
-import { listenOnce, listeningSupported } from "./voice";
+import { listenErrorMessage, listenOnce, listeningSupported } from "./voice";
 
 export type ListenSettings = Pick<ListenPrefs, "detail" | "rate" | "ballSound" | "screenReader">;
 
@@ -78,8 +78,8 @@ export function ListenSheet({
     try {
       const heard = (await result).trim();
       if (heard) await listen.ask(heard);
-    } catch {
-      /* microphone blocked or unsupported: typing still works */
+    } catch (e) {
+      listen.notify(listenErrorMessage(e));
     } finally {
       setListening(false);
     }

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/message";
 import { askAboutMatch, type AskContext, type AskResult } from "@/insights/ask-match";
 import { speak } from "@/insights/speech";
-import { listenOnce, listeningSupported } from "@/listen/voice";
+import { listenErrorMessage, listenOnce, listeningSupported } from "@/listen/voice";
 import { VerifiedBadge } from "./agent-trace";
 
 interface Turn {
@@ -64,14 +64,19 @@ export function MatchAssistant({
     if (voice) void speak(result.answer, ctx.lang);
   };
 
+  const stopListening = useRef<(() => void) | null>(null);
   const askByVoice = async () => {
-    if (listening) return;
+    // A second tap ends the question early.
+    if (listening) return stopListening.current?.();
+    const { result, stop } = listenOnce(ctx.lang);
+    stopListening.current = stop;
     setListening(true);
     try {
-      const heard = (await listenOnce(ctx.lang).result).trim();
+      const heard = (await result).trim();
       if (heard) await ask(heard);
-    } catch {
-      /* microphone blocked: typing still works */
+    } catch (e) {
+      const text = listenErrorMessage(e);
+      setTurns((t) => [...t, { id: nextId.current++, who: "ai", text }]);
     } finally {
       setListening(false);
     }
@@ -175,7 +180,7 @@ export function MatchAssistant({
             <button
               type="button"
               onClick={() => void askByVoice()}
-              aria-label="Ask by voice"
+              aria-label={listening ? "Stop listening" : "Ask by voice"}
               aria-pressed={listening}
               className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${listening ? "bg-live text-white animate-live" : "bg-secondary"}`}
             >

@@ -68,6 +68,7 @@ type Recognition = {
   onend: (() => void) | null;
   start(): void;
   stop(): void;
+  abort(): void;
 };
 
 function recognitionClass(): (new () => Recognition) | null {
@@ -79,7 +80,11 @@ function recognitionClass(): (new () => Recognition) | null {
 
 export const listeningSupported = () => recognitionClass() !== null;
 
-/** Listens for one spoken question. Resolves with the transcript ("" if nothing heard). */
+/** Longest a question can take; some browsers never end the session on their own. */
+const LISTEN_LIMIT_MS = 10_000;
+
+/** Listens for one spoken question. Resolves with the transcript ("" if nothing heard);
+ *  rejects with the recognition error code (e.g. "not-allowed", "network"). */
 export function listenOnce(language: string): { result: Promise<string>; stop: () => void } {
   const Rec = recognitionClass();
   if (!Rec) return { result: Promise.reject(new Error("unsupported")), stop: () => {} };
@@ -87,14 +92,44 @@ export function listenOnce(language: string): { result: Promise<string>; stop: (
   rec.lang = LANG_CODES[language] ?? "en-GB";
   rec.interimResults = false;
   rec.maxAlternatives = 1;
+  let heard = "";
+  let finish: (() => void) | undefined;
   const result = new Promise<string>((resolve, reject) => {
-    let heard = "";
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const done = (err?: string) => {
+      timers.forEach(clearTimeout);
+      if (err) reject(new Error(err));
+      else resolve(heard);
+    };
     rec.onresult = (e) => {
       heard = e.results[0]?.[0]?.transcript ?? "";
     };
-    rec.onerror = (e) => (e.error === "no-speech" ? resolve("") : reject(new Error(e.error)));
-    rec.onend = () => resolve(heard);
+    rec.onerror = (e) =>
+      done(e.error === "no-speech" || e.error === "aborted" ? undefined : e.error);
+    rec.onend = () => done();
+    // Stop asking for audio at the limit, and give up if the browser never reports back.
+    finish = () => {
+      rec.stop();
+      timers.push(setTimeout(() => (rec.abort(), done()), 1500));
+    };
+    timers.push(setTimeout(finish, LISTEN_LIMIT_MS));
+    try {
+      rec.start();
+    } catch {
+      done("start-failed");
+    }
   });
-  rec.start();
-  return { result, stop: () => rec.stop() };
+  return { result, stop: () => finish?.() };
+}
+
+/** What to tell the fan when listening fails, by recognition error code. */
+export function listenErrorMessage(error: unknown): string {
+  const code = error instanceof Error ? error.message : "";
+  if (code === "not-allowed" || code === "service-not-allowed")
+    return "The microphone is blocked. Allow it from the icon in the address bar, then try again.";
+  if (code === "audio-capture")
+    return "No microphone was found. You can type your question instead.";
+  if (code === "network" || code === "unsupported" || code === "start-failed")
+    return "Voice questions don't work in this browser. Try Chrome or Edge, or type your question.";
+  return "I couldn't hear that. Try again, or type your question.";
 }

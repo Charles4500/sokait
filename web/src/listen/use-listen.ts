@@ -249,5 +249,7 @@ export function useListen(
     repeatWhere,
     minute,
     voiceUnavailable,
+    /** Says a message right away (e.g. why a voice question failed). */
+    notify: useCallback((text: string) => say(text, "high", "answer"), [say]),
   };
 }
