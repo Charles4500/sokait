@@ -1,7 +1,7 @@
 [project]
-name = "pitchpulse-agents"
+name = "sokait-agents"
 version = "0.1.0"
-description = "PitchPulse multi-agent match insights service (Microsoft Agent Framework)"
+description = "Sokait multi-agent match insights service (Microsoft Agent Framework)"
 authors = [
     { name = "CharlesKibet", email = "charlesbiegon973@gmail.com" }
 ]

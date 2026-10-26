@@ -106,7 +106,7 @@ class RecapRequest(BaseModel):
 
 
 class AskRequest(BaseModel):
-    """A fan's spoken question about the live match (PitchPulse Listen voice commands)."""
+    """A fan's spoken question about the live match (Sokait Listen voice commands)."""
 
     match_id: str
     moment_id: str = Field(description='Latest "gen:seq"; selects the match memory')

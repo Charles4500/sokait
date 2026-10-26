@@ -12,4 +12,4 @@ RUN uv sync --frozen --no-dev
 RUN useradd --create-home app
 USER app
 EXPOSE 8000
-CMD ["/app/.venv/bin/uvicorn", "pitchpulse_agents.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/.venv/bin/uvicorn", "sokait_agents.server:app", "--host", "0.0.0.0", "--port", "8000"]

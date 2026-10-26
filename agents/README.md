@@ -1,4 +1,4 @@
-# PitchPulse agents
+# Sokait agents
 
 Multi-agent service that turns a key match moment into verified, personalised overlay text.
 Built with [Microsoft Agent Framework](https://github.com/microsoft/agent-framework).
@@ -27,7 +27,7 @@ an overlay, using the deterministic explanation the web app sent.
 
 ```sh
 uv sync
-uv run uvicorn pitchpulse_agents.server:app --reload --port 8000
+uv run uvicorn sokait_agents.server:app --reload --port 8000
 uv run pytest
 ```
 
@@ -46,5 +46,5 @@ Other settings: `MOMENT_BUDGET_S` (default 4), `AGENTS_TOKEN` (require `Authoriz
 ## API
 
 - `GET /healthz`: backend, circuit breaker state, time budget.
-- `POST /moments`: body is a `MomentRequest` (see `src/pitchpulse_agents/models.py`), returns an `Overlay`.
+- `POST /moments`: body is a `MomentRequest` (see `src/sokait_agents/models.py`), returns an `Overlay`.
   Interactive docs at `/docs`.

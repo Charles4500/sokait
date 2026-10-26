@@ -8,7 +8,7 @@ os.environ["FOUNDRY_PROJECT_ENDPOINT"] = ""
 
 import pytest
 
-from pitchpulse_agents.models import MomentRequest
+from sokait_agents.models import MomentRequest
 
 
 def make_moment(**overrides) -> MomentRequest:

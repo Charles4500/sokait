@@ -175,10 +175,10 @@ interface Channel {
   nextAt: number | null;
 }
 const g = globalThis as unknown as {
-  __pitchpulseSessions?: Map<string, MatchSession>;
-  __pitchpulseChannels?: Channel[];
+  __sokaitSessions?: Map<string, MatchSession>;
+  __sokaitChannels?: Channel[];
 };
-const sessions = (g.__pitchpulseSessions ??= new Map());
+const sessions = (g.__sokaitSessions ??= new Map());
 
 function startFixture(ch: Omit<Channel, "session" | "nextAt">, stagger: number): Channel {
   const fixture = ROUNDS[ch.round]![ch.index]!;
@@ -201,15 +201,15 @@ function advance(ch: Channel) {
     { index: ch.index, round, cycle: round === 0 ? ch.cycle + 1 : ch.cycle },
     0,
   );
-  g.__pitchpulseChannels![ch.index] = next;
+  g.__sokaitChannels![ch.index] = next;
 }
 
 /** The parallel channels, started on first use with staggered kick-offs. */
 function channels(): Channel[] {
-  g.__pitchpulseChannels ??= Array.from({ length: CHANNELS }, (_, index) =>
+  g.__sokaitChannels ??= Array.from({ length: CHANNELS }, (_, index) =>
     startFixture({ index, round: 0, cycle: 0 }, index * KICKOFF_STAGGER_EVENTS),
   );
-  return g.__pitchpulseChannels;
+  return g.__sokaitChannels;
 }
 
 /**

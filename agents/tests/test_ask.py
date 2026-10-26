@@ -2,10 +2,10 @@ import json
 
 from agent_framework import ChatResponse, Message
 
-from pitchpulse_agents.ask import FALLBACK
-from pitchpulse_agents.models import AskRequest
-from pitchpulse_agents.offline import OfflineChatClient
-from pitchpulse_agents.workflow import InsightsEngine
+from sokait_agents.ask import FALLBACK
+from sokait_agents.models import AskRequest
+from sokait_agents.offline import OfflineChatClient
+from sokait_agents.workflow import InsightsEngine
 
 from .conftest import make_moment
 

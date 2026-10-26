@@ -1,4 +1,4 @@
-// Speech in and out for PitchPulse Listen.
+// Speech in and out for Sokait Listen.
 import { LANG_CODES, speakLine, type Utterance } from "@/insights/speech";
 
 export type Priority = "low" | "normal" | "high";

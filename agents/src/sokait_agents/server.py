@@ -14,7 +14,7 @@ from .clients import backend_name
 from .models import Answer, AskRequest, MomentRequest, Overlay, Recap, RecapRequest
 from .workflow import InsightsEngine
 
-app = FastAPI(title="PitchPulse agents", version="0.1.0")
+app = FastAPI(title="Sokait agents", version="0.1.0")
 engine = InsightsEngine()
 
 

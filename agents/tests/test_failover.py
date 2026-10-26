@@ -3,12 +3,12 @@ import json
 import pytest
 from agent_framework import Agent, ChatResponse, Message
 
-from pitchpulse_agents.clients import (
+from sokait_agents.clients import (
     FailoverChatClient,
     available_models,
     rate_limit_wait,
 )
-from pitchpulse_agents.offline import OfflineChatClient
+from sokait_agents.offline import OfflineChatClient
 
 
 class RateLimited(Exception):

@@ -1,7 +1,7 @@
 """Text to speech with Piper: free, open-source neural voices that run on the CPU.
 
 Browsers' built-in voices vary wildly (Chrome on Linux has none), and for blind fans the
-voice is the product, so PitchPulse can always speak for itself. Voices live in
+voice is the product, so Sokait can always speak for itself. Voices live in
 TTS_VOICE_DIR (default voice/voices); download them with
 `uv run python -m piper.download_voices --download-dir voices <voice>`.
 """

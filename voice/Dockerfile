@@ -18,4 +18,4 @@ ENV TTS_VOICE_DIR=/app/voices
 RUN useradd --create-home app
 USER app
 EXPOSE 8001
-CMD ["/app/.venv/bin/uvicorn", "pitchpulse_voice.server:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["/app/.venv/bin/uvicorn", "sokait_voice.server:app", "--host", "0.0.0.0", "--port", "8001"]

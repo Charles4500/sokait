@@ -40,7 +40,7 @@ const DETAIL: { id: Detail; label: string; hint: string }[] = [
   { id: "every", label: "Every touch", hint: "Short call for every pass and tackle" },
 ];
 
-/** PitchPulse Listen: follow the match by sound, in a sheet beside the dashboard.
+/** Sokait Listen: follow the match by sound, in a sheet beside the dashboard.
  *  Listening carries on when the sheet is closed, like a radio. */
 export function ListenSheet({
   defaultOpen = false,
@@ -128,7 +128,7 @@ export function ListenSheet({
         <SheetHeader className="border-b border-border p-5 text-left">
           <SheetTitle className="flex items-center gap-2 font-display text-xl">
             <Headphone variant="Bulk" className="h-5 w-5 text-primary" aria-hidden />
-            PitchPulse Listen
+            Sokait Listen
           </SheetTitle>
           <SheetDescription>
             Live football through sound. Put on headphones: the ball moves around you, and AI

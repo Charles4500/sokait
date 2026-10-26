@@ -1,8 +1,8 @@
-// PitchPulse on Azure Container Apps: the web app (public), the agent service and the
+// Sokait on Azure Container Apps: the web app (public), the agent service and the
 // voice service (internal), in one Container Apps environment with Log Analytics.
 //
-//   az group create -n pitchpulse -l westeurope
-//   az deployment group create -g pitchpulse -f infra/main.bicep -p infra/main.bicepparam
+//   az group create -n sokait -l westeurope
+//   az deployment group create -g sokait -f infra/main.bicep -p infra/main.bicepparam
 //
 // The match hub, caches and token budget live in memory, so each app runs one replica.
 
@@ -10,9 +10,9 @@
 param location string = resourceGroup().location
 
 @description('Prefix for resource names.')
-param name string = 'pitchpulse'
+param name string = 'sokait'
 
-@description('Container images, e.g. ghcr.io/<owner>/pitchpulse-web:<tag>.')
+@description('Container images, e.g. ghcr.io/<owner>/sokait-web:<tag>.')
 param webImage string
 param agentsImage string
 param voiceImage string

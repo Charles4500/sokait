@@ -1,6 +1,6 @@
-# PitchPulse: architecture
+# Sokait: architecture
 
-PitchPulse turns a live stream of synthetic, football-realistic events into explainable,
+Sokait turns a live stream of synthetic, football-realistic events into explainable,
 personalised match intelligence: on-screen overlays, live commentary, recaps, an audio
 mode for blind and low-vision fans, and a machine-readable feed for broadcast partners.
 
@@ -12,13 +12,13 @@ a Fact-Checker verifies every line before it airs.
 
 ## The five-stage pipeline
 
-| Stage           | What happens                                                                                                                                                          | Where                                                   |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **Ingest**      | A seeded simulator plays a six-club round-robin, three fixtures at once: passes, shots, tackles, possession and pressure events, with pitch coordinates and speeds.   | `web/src/match/engine.ts`, `web/src/match/hub.ts` (SSE) |
-| **Interpret**   | Pure functions turn events into stats: xG, pass accuracy and difficulty, shot and run speed, pressing, control vs chaos, momentum, win probability, player tags.      | `web/src/match/engine.ts`                               |
-| **Explain**     | A team of agents decides why a moment matters, citing evidence from the stats, and narrates it per audience.                                                          | `agents/` (Python, Microsoft Agent Framework)           |
-| **Render**      | Tactical pitch, lower-third overlays, live commentary, timeline with replay, agent trace, and a versioned overlay feed (`smie.overlay.v2`).                           | `web/src/components/dashboard/`, `/api/public/feed`     |
-| **Personalise** | Persona (analyst, casual fan, player focus, audio), six languages, favourite club and player, spoken commentary, and PitchPulse Listen for blind and low-vision fans. | Narrator agent, `web/src/listen/`, `voice/`             |
+| Stage           | What happens                                                                                                                                                        | Where                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Ingest**      | A seeded simulator plays a six-club round-robin, three fixtures at once: passes, shots, tackles, possession and pressure events, with pitch coordinates and speeds. | `web/src/match/engine.ts`, `web/src/match/hub.ts` (SSE) |
+| **Interpret**   | Pure functions turn events into stats: xG, pass accuracy and difficulty, shot and run speed, pressing, control vs chaos, momentum, win probability, player tags.    | `web/src/match/engine.ts`                               |
+| **Explain**     | A team of agents decides why a moment matters, citing evidence from the stats, and narrates it per audience.                                                        | `agents/` (Python, Microsoft Agent Framework)           |
+| **Render**      | Tactical pitch, lower-third overlays, live commentary, timeline with replay, agent trace, and a versioned overlay feed (`smie.overlay.v2`).                         | `web/src/components/dashboard/`, `/api/public/feed`     |
+| **Personalise** | Persona (analyst, casual fan, player focus, audio), six languages, favourite club and player, spoken commentary, and Sokait Listen for blind and low-vision fans.   | Narrator agent, `web/src/listen/`, `voice/`             |
 
 ## System overview
 
@@ -29,7 +29,7 @@ flowchart LR
     HUB["Match hub<br/>3 channels · round-robin season"] -->|SSE| DASH["Watch page<br/>pitch · timeline · commentary"]
     HUB -->|/api/match/live| DAY
     HUB -->|SSE| FEED["Partner feed<br/>smie.overlay.v2"]
-    DASH --> LISTEN["PitchPulse Listen<br/>spatial audio · voice Q&A"]
+    DASH --> LISTEN["Sokait Listen<br/>spatial audio · voice Q&A"]
     DASH -->|key moment| FN["Server functions"]
     LISTEN -->|question| FN
   end
@@ -80,7 +80,7 @@ ends at the Publisher, so a moment always produces an overlay.
 | **Fact-Checker**       | Draft narration, facts table, event                                   | Pass, or reject with reasons                                          | Every number must exist in the match data; the player must be named exactly; overlays must fit. One repair.    |
 | **Publisher**          | Verified drafts or fallbacks                                          | `smie.overlay.v2` overlay with trace; updates memory and caches       | One place assembles provenance and falls back per segment.                                                     |
 | **Recap Editor** (LLM) | Score, stats, aired insights, key moments                             | Headline + 3–4 narratives, fact-checked                               | Works over the whole match, not one moment.                                                                    |
-| **Match Q&A** (LLM)    | A fan's spoken question, stats, player stats, recent events           | A 1–2 sentence spoken answer, fact-checked                            | Powers voice questions in PitchPulse Listen.                                                                   |
+| **Match Q&A** (LLM)    | A fan's spoken question, stats, player stats, recent events           | A 1–2 sentence spoken answer, fact-checked                            | Powers voice questions in Sokait Listen.                                                                       |
 
 ### Shared state
 
@@ -148,7 +148,7 @@ One model call per viewer per moment does not scale to a broadcast audience.
   answered on the device with no model call.
 - Cost grows with the number of segments, not the number of viewers.
 
-## PitchPulse Listen (accessibility)
+## Sokait Listen (accessibility)
 
 A sheet in the dashboard that follows the live match through sound alone:
 

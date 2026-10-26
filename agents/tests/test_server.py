@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from pitchpulse_agents.server import app
+from sokait_agents.server import app
 
 from .conftest import make_moment
 

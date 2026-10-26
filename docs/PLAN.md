@@ -11,7 +11,7 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 - [x] Shared cache, model failover, token budget, circuit breaker
 - [x] Dashboard: tactical pitch, lower third, live commentary, timeline and replay, Live
       now list, keyboard shortcuts, agent trace, recaps, player cards
-- [x] PitchPulse Listen: spatial audio, spoken commentary, voice Q&A, screen-reader mode
+- [x] Sokait Listen: spatial audio, spoken commentary, voice Q&A, screen-reader mode
 - [x] Voice service (Piper) for natural speech in six languages
 - [x] CI, git hooks, tests for every service; offline fault-injection evaluation
 
@@ -34,7 +34,7 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 | 0:45 | "How the last insight was made": agent trace, evidence, the Fact-Checker verdict            |
 | 0:58 | Ask the match: type a question, then ask one with the mic; the verified badge               |
 | 1:10 | Timeline: jump back to the goal; Live now: switch to the other match your club follows      |
-| 1:22 | PitchPulse Listen with headphones: spatial audio, the late winner called out loud           |
+| 1:22 | Sokait Listen with headphones: spatial audio, the late winner called out loud               |
 | 1:42 | Architecture in one frame: agents, Fact-Checker, Groq → Gemini failover, Agent Framework    |
 | 1:55 | Close                                                                                       |
 
@@ -49,7 +49,7 @@ seeds: `bun scripts/find-demo-seed.ts` in `web/`.
 
 1. Record in the morning, on a fresh Groq quota. Gemini covers the rest if Groq runs out.
 2. Start the three services (see the README), with the voice preloaded:
-   `VOICE_PRELOAD="English,Swahili" uv run uvicorn pitchpulse_voice.server:app --port 8001`
+   `VOICE_PRELOAD="English,Swahili" uv run uvicorn sokait_voice.server:app --port 8001`
 3. Microsoft Edge, headphones, 1920×1080, zoom 100%, other tabs and notifications off.
 4. On the matchday page: favourite club Thames Rovers, and also follow one other club.
 5. On the watch page: voice on (timeline speaker), language EN, viewing as Casual fan.

@@ -62,11 +62,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t pitchpulse-agents:ci agents
+      - run: docker build -t sokait-agents:ci agents
 
   web-image:
     name: Web app image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t pitchpulse-web:ci web
+      - run: docker build -t sokait-web:ci web

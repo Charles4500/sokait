@@ -30,11 +30,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 load_dotenv(ROOT / ".env")
 
-from pitchpulse_agents.clients import backend_name
-from pitchpulse_agents.facts import numbers_in
-from pitchpulse_agents.models import MomentRequest, NarrationOut
-from pitchpulse_agents.offline import OfflineChatClient
-from pitchpulse_agents.workflow import InsightsEngine
+from sokait_agents.clients import backend_name
+from sokait_agents.facts import numbers_in
+from sokait_agents.models import MomentRequest, NarrationOut
+from sokait_agents.offline import OfflineChatClient
+from sokait_agents.workflow import InsightsEngine
 
 SEGMENTS = [
     {"persona": "casual", "language": "English", "favourite_club": "Thames Rovers"},

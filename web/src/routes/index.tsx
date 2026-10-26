@@ -9,7 +9,7 @@ import { useMatchday, type LiveMatch, type UpcomingMatch } from "@/match/use-mat
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PitchPulse | Matchday" },
+      { title: "Sokait | Matchday" },
       {
         name: "description",
         content:
@@ -38,7 +38,7 @@ function Matchday() {
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <header className="flex items-center gap-2.5">
           <span className="inline-block h-6 w-1.5 rounded-full bg-primary shadow-[0_0_12px_var(--pp-primary)]" />
-          <span className="font-display text-lg font-semibold">PitchPulse</span>
+          <span className="font-display text-lg font-semibold">Sokait</span>
           <span className="ml-2 text-xs text-muted-foreground">Synthetic League · Matchday</span>
         </header>
 

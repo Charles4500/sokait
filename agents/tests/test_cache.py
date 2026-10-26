@@ -1,9 +1,9 @@
 import asyncio
 
-from pitchpulse_agents.cache import TTLCache
-from pitchpulse_agents.models import Insight, NarrationOut
-from pitchpulse_agents.offline import OfflineChatClient
-from pitchpulse_agents.workflow import InsightsEngine
+from sokait_agents.cache import TTLCache
+from sokait_agents.models import Insight, NarrationOut
+from sokait_agents.offline import OfflineChatClient
+from sokait_agents.workflow import InsightsEngine
 
 from .conftest import make_moment
 

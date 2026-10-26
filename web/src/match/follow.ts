@@ -8,7 +8,7 @@ export interface Follow {
   also: string[];
 }
 
-const KEY = "pitchpulse.follow";
+const KEY = "sokait.follow";
 const DEFAULT: Follow = { favClub: "thr", also: [] };
 
 function read(): Follow {

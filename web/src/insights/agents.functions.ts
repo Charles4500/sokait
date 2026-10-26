@@ -123,7 +123,7 @@ export const writeRecap = createServerFn({ method: "POST" })
   .inputValidator((d) => RecapIn.parse(d))
   .handler(({ data }) => callAgents<Recap>("/recap", data, 20000));
 
-/** A fan's spoken question, answered by the Match Q&A agent (PitchPulse Listen). */
+/** A fan's spoken question, answered by the Match Q&A agent (Sokait Listen). */
 export const askMatch = createServerFn({ method: "POST" })
   .inputValidator((d) => AskIn.parse(d))
   .handler(({ data }) => callAgents<Answer>("/ask", data, 8000));

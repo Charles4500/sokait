@@ -23,7 +23,7 @@ export function DashboardHeader({
     <header className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 sm:gap-4 sm:px-6">
       <Link to="/" className="flex items-center gap-2.5" title="All matches">
         <span className="inline-block h-6 w-1.5 rounded-full bg-primary shadow-[0_0_12px_var(--pp-primary)]" />
-        <span className="font-display text-lg font-semibold">PitchPulse</span>
+        <span className="font-display text-lg font-semibold">Sokait</span>
       </Link>
       <div className="order-3 flex w-full items-center justify-between gap-1 rounded-full bg-muted/40 p-1 sm:order-none sm:mx-auto sm:w-auto sm:justify-start">
         <span className="hidden items-center gap-2 px-3 text-xs text-muted-foreground sm:flex">

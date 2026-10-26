@@ -33,7 +33,7 @@ const AI_COOLDOWN_MS = 6000;
 const STALE_MS = 10000; // AI narration older than this is no longer worth saying
 
 /**
- * PitchPulse Listen: follows the live match through sound and speech.
+ * Sokait Listen: follows the live match through sound and speech.
  * Spatial earcons for every event, spoken key moments (instant deterministic line,
  * then verified AI narration), and spoken answers to voice questions.
  */

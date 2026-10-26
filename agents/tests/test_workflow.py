@@ -3,9 +3,9 @@ import json
 
 from agent_framework import ChatResponse, Message
 
-from pitchpulse_agents.models import Insight, NarrationOut
-from pitchpulse_agents.offline import OfflineChatClient
-from pitchpulse_agents.workflow import InsightsEngine
+from sokait_agents.models import Insight, NarrationOut
+from sokait_agents.offline import OfflineChatClient
+from sokait_agents.workflow import InsightsEngine
 
 from .conftest import make_moment
 
@@ -144,7 +144,7 @@ async def test_match_memory_feeds_recent_insights_to_the_analyst():
 
 def recap_request(**kw):
     m = make_moment()
-    from pitchpulse_agents.models import RecapRequest
+    from sokait_agents.models import RecapRequest
 
     return RecapRequest.model_validate(
         {

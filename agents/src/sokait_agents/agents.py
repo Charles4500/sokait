@@ -117,7 +117,7 @@ def make_narrator(client: Any) -> Agent:
 
 
 QA_INSTRUCTIONS = """\
-You are the Match Assistant in PitchPulse Listen, the audio mode of a live football app for blind and low-vision
+You are the Match Assistant in Sokait Listen, the audio mode of a live football app for blind and low-vision
 fans. All match data is synthetic. Your answer is read aloud by a speech engine.
 
 You receive JSON with the fan's spoken `question`, the score, minute, stats, `extra`

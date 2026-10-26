@@ -36,13 +36,13 @@ export const Route = createFileRoute("/watch")({
   }),
   head: () => ({
     meta: [
-      { title: "PitchPulse | Live Match Insights" },
+      { title: "Sokait | Live Match Insights" },
       {
         name: "description",
         content:
           "Ingest, interpret, explain, render and personalise synthetic football events in real time.",
       },
-      { property: "og:title", content: "PitchPulse | Live Match Insights" },
+      { property: "og:title", content: "Sokait | Live Match Insights" },
       {
         property: "og:description",
         content:
@@ -59,7 +59,7 @@ const DEFAULT_LISTEN: ListenSettings = {
   ballSound: true,
   screenReader: false,
 };
-const LISTEN_KEY = "pitchpulse.listen.settings";
+const LISTEN_KEY = "sokait.listen.settings";
 
 const DEFAULT_PREFS: Prefs = {
   mode: "casual",

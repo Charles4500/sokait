@@ -1,11 +1,11 @@
-from pitchpulse_agents.facts import (
+from sokait_agents.facts import (
     build_facts,
     check_evidence,
     check_names,
     check_numbers,
     numbers_in,
 )
-from pitchpulse_agents.models import Evidence
+from sokait_agents.models import Evidence
 
 
 def test_facts_flatten_stats_event_and_score(moment):

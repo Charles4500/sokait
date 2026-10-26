@@ -1,13 +1,13 @@
-# PitchPulse
+# Sokait
 
 **Live football intelligence that every fan can trust, see and hear.**
 
-PitchPulse turns a stream of synthetic match events into explainable, personalised match
+Sokait turns a stream of synthetic match events into explainable, personalised match
 intelligence. A team of agents built on **Microsoft Agent Framework** decides which
 moments matter, explains why with evidence from the stats, and narrates them like a live
 commentator, for analysts, casual fans and player followers, in six languages. A
 Fact-Checker agent verifies every number before it airs, so nothing invented reaches the
-screen. And with **PitchPulse Listen**, blind and low-vision fans can follow the match
+screen. And with **Sokait Listen**, blind and low-vision fans can follow the match
 through spatial audio and spoken commentary.
 
 All clubs, players and events are synthetic. No real league data is used.
@@ -28,7 +28,7 @@ All clubs, players and events are synthetic. No real league data is used.
 - **Live timeline**: scrub back, replay from any goal, pause your own view, rejoin live.
   Matches of clubs you follow stack up in the corner; a goal there pops up so you can
   switch. YouTube-style keyboard shortcuts (`?` lists them).
-- **PitchPulse Listen**: spatial ball audio, earcons, spoken AI commentary and voice
+- **Sokait Listen**: spatial ball audio, earcons, spoken AI commentary and voice
   questions ("how is Mensah doing?"), with a screen-reader mode.
 - **Ask the match**: a floating assistant (or `/`) answers typed or spoken questions;
   common ones on the device, the rest by a Match Q&A agent, fact-checked.
@@ -53,13 +53,13 @@ All clubs, players and events are synthetic. No real league data is used.
 web/                    TypeScript web app (TanStack Start, React, Tailwind, shadcn/ui)
   src/match/            Synthetic league and match engine, live match hub, pitch layout
   src/insights/         Calls to the agent service, key-moment logic, speech
-  src/listen/           PitchPulse Listen: spatial audio, spoken commentary, voice Q&A
+  src/listen/           Sokait Listen: spatial audio, spoken commentary, voice Q&A
   src/components/       Dashboard sections and shadcn/ui primitives
   src/routes/           Matchday (/) and watch (/watch) pages; API routes (SSE streams,
                         matchday list, partner feed, TTS)
   scripts/              Evaluation export, demo seed finder, portrait generation
 agents/                 Python agent service (Microsoft Agent Framework, FastAPI)
-  src/pitchpulse_agents/  Agents, workflow, Fact-Checker, memory, cache, budget, models
+  src/sokait_agents/  Agents, workflow, Fact-Checker, memory, cache, budget, models
   eval/                 Evaluation harness (live run and fault injection)
 voice/                  Speech service (Piper neural voices, GPL-3.0)
 infra/                  Azure Container Apps deployment (Bicep)
@@ -74,10 +74,10 @@ Needs [Bun](https://bun.sh) and [uv](https://docs.astral.sh/uv/).
 ```sh
 # 1. Agent service (port 8000). Without credentials it uses an offline, rule-based client.
 cd agents && uv sync && cp .env.example .env    # optional: add a free Groq key
-uv run uvicorn pitchpulse_agents.server:app --port 8000
+uv run uvicorn sokait_agents.server:app --port 8000
 
 # 2. Voice service (port 8001), optional; see voice/README.md to download voices once
-cd voice && uv sync && uv run uvicorn pitchpulse_voice.server:app --port 8001
+cd voice && uv sync && uv run uvicorn sokait_voice.server:app --port 8001
 
 # 3. Web app (port 8080)
 cd web && bun install && bun run dev
@@ -118,8 +118,8 @@ app public, agent and voice services internal). Push the three images, then:
 
 ```sh
 export OPENAI_API_KEY=... GEMINI_API_KEY=... AGENTS_TOKEN=$(openssl rand -hex 24) VOICE_TOKEN=$(openssl rand -hex 24)
-az group create -n pitchpulse -l westeurope
-az deployment group create -g pitchpulse -f infra/main.bicep -p infra/main.bicepparam
+az group create -n sokait -l westeurope
+az deployment group create -g sokait -f infra/main.bicep -p infra/main.bicepparam
 ```
 
 Set `foundryProjectEndpoint` in `infra/main.bicepparam` to use Microsoft Foundry models

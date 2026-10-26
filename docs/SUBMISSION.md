@@ -6,7 +6,7 @@ Copy into the hackathon form. Replace the two links before submitting.
 
 ## Project name
 
-PitchPulse
+Sokait
 
 ## Tagline (one line)
 
@@ -15,13 +15,13 @@ Live football intelligence that every fan can trust, see and hear.
 ## Elevator pitch
 
 Live match data tells fans _what_ happened, rarely _why_ it mattered, and almost never in
-their language or in a form they can follow without seeing the screen. PitchPulse is a
+their language or in a form they can follow without seeing the screen. Sokait is a
 multi-agent match intelligence engine built on **Microsoft Agent Framework**. It ingests
 synthetic, football-realistic events from a six-club league playing live, computes
 explainable stats in code, and lets a team of agents decide which moments matter, explain
 why with evidence, and narrate them like a live commentator: for analysts, casual fans and
 player followers, in six languages. A Fact-Checker agent verifies every number against the
-match data before it airs, so nothing invented reaches the screen. With **PitchPulse
+match data before it airs, so nothing invented reaches the screen. With **Sokait
 Listen**, blind and low-vision fans follow the match through spatial audio, spoken
 commentary and voice questions, using just a phone and headphones.
 
@@ -40,7 +40,7 @@ commentary and voice questions, using just a phone and headphones.
 - **Ask the match:** a floating assistant on every screen answers typed or spoken
   questions. Common ones are answered instantly on the device; the rest go to the Match
   Q&A agent and show whether they passed the Fact-Checker.
-- **PitchPulse Listen:** spatial ball audio (your club always attacks to your right),
+- **Sokait Listen:** spatial ball audio (your club always attacks to your right),
   earcons for passes, shots and goals, spoken AI commentary, voice questions answered by a
   Match Q&A agent, and a screen-reader mode.
 - **Recaps** by a Recap Editor agent, and a **partner feed** of versioned, machine-readable
@@ -99,5 +99,5 @@ source: the ingest stage is an interface, so nothing downstream changes.
 
 ## Links
 
-- Code: https://github.com/Charles4500/pitchpulse
+- Code: https://github.com/Charles4500/sokait
 - Demo video: _add YouTube link_

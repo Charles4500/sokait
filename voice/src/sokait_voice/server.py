@@ -25,7 +25,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     warm.cancel()
 
 
-app = FastAPI(title="PitchPulse voice", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Sokait voice", version="0.1.0", lifespan=lifespan)
 
 
 class SpeakRequest(BaseModel):

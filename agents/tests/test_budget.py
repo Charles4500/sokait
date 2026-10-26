@@ -1,6 +1,6 @@
-from pitchpulse_agents.budget import TokenBudget
-from pitchpulse_agents.offline import OfflineChatClient
-from pitchpulse_agents.workflow import InsightsEngine
+from sokait_agents.budget import TokenBudget
+from sokait_agents.offline import OfflineChatClient
+from sokait_agents.workflow import InsightsEngine
 
 from .conftest import make_moment
 

@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from pitchpulse_voice.server import app
+from sokait_voice.server import app
 
 client = TestClient(app)
 

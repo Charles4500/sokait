@@ -1,7 +1,7 @@
 [project]
-name = "pitchpulse-voice"
+name = "sokait-voice"
 version = "0.1.0"
-description = "Spoken commentary for PitchPulse with Piper neural voices"
+description = "Spoken commentary for Sokait with Piper neural voices"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 requires-python = ">=3.12"
