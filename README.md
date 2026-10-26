@@ -131,7 +131,7 @@ through the agent service's managed identity.
 150 MB of RAM), for single-service hosts. The live demo runs on Render's free tier from
 `render.yaml`: create a Blueprint from this repository and enter `OPENAI_API_KEY` and
 `GEMINI_API_KEY` when asked. Build with `--build-arg WITH_VOICE=1` to include the voice
-service as well (needs about 1.5 GB of RAM).
+service as well (about 500 MB of RAM with two languages loaded).
 
 ## Licence
 

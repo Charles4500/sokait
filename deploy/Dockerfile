@@ -1,7 +1,7 @@
 # Sokait in one container, for a single-service host such as Render's free tier: the
 # web app on $PORT, the agent service (and optionally the voice service) on localhost.
-#   docker build -f deploy/Dockerfile .                       # web + agents (~350 MB RAM)
-#   docker build -f deploy/Dockerfile --build-arg WITH_VOICE=1 .   # + Piper voices (~1.5 GB)
+#   docker build -f deploy/Dockerfile .                       # web + agents (~150 MB RAM)
+#   docker build -f deploy/Dockerfile --build-arg WITH_VOICE=1 .   # + Piper voices (~500 MB)
 FROM oven/bun:1.3.11 AS web
 WORKDIR /src
 COPY web/package.json web/bun.lock web/bunfig.toml ./
