@@ -12,7 +12,7 @@ through spatial audio and spoken commentary.
 
 All clubs, players and events are synthetic. No real league data is used.
 
-> **Live demo: [sokait.onsent.co](https://sokait.onsent.co)** · Demo video: _link added on submission_ · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Evaluation: [docs/EVAL.md](docs/EVAL.md)
+> **Live demo: [sokait.onsent.co](https://sokait.onsent.co)** · Demo video: [YouTube](https://youtu.be/PyFwZb8ev4g) · Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Evaluation: [docs/EVAL.md](docs/EVAL.md)
 
 ## What it does
 

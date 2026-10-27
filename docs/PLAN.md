@@ -19,7 +19,7 @@ Submissions close **27 October 2026**. Target: submit on the 26th.
 
 - [x] Realistic player portraits (FLUX.1-schnell on Cloudflare Workers AI)
 - [x] Live evaluation run → `docs/EVAL.md`
-- [ ] Demo video under 2 minutes (script below), uploaded to YouTube
+- [x] Demo video under 2 minutes, uploaded to YouTube
 - [ ] Make the repo public; decide on the commit email
 - [x] Submission text: `docs/SUBMISSION.md` (add the video link)
 

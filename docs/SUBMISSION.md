@@ -1,6 +1,6 @@
 # Submission text
 
-Copy into the hackathon form. Replace the two links before submitting.
+Copy into the hackathon form.
 
 ---
 
@@ -105,4 +105,4 @@ source: the ingest stage is an interface, so nothing downstream changes.
 
 - Live demo: https://sokait.onsent.co (demo match: https://sokait.onsent.co/watch?seed=965)
 - Code: https://github.com/Charles4500/sokait
-- Demo video: _add YouTube link_
+- Demo video: https://youtu.be/PyFwZb8ev4g
